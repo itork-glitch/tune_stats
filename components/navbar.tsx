@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { cn } from '@/lib/utils';
 //import { Icons } from '@/components/icons';
@@ -55,14 +56,20 @@ const components: { title: string; href: string; description: string }[] = [
 
 export function Navbar() {
   return (
-    <nav className='fixed top-0 left-0 right-0 bg-background z-50 flex items-center  px-4'>
-      <Link href='/' className='flex items-center space-x-2'>
-        {/* Replace with your logo */}
-        <img src='/path/to/logo.png' alt='Logo' className='h-8 w-8' />
-        <span className='text-lg font-bold'>Tune Stats</span>
-      </Link>
+    <nav className='fixed top-0 left-0 right-0 bg-background z-50 flex items-center px-4 py-2'>
+      <div className='flex items-center space-x-4'>
+        <Link href='/'>
+          <Image
+            src='/tune_stats_logo.png' // Corrected path
+            alt='Logo'
+            width={40}
+            height={40}
+          />
+        </Link>
+      </div>
       <NavigationMenu>
-        <NavigationMenuList>
+        {' '}
+        <NavigationMenuList className='ml-4'>
           <NavigationMenuItem>
             <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
             <NavigationMenuContent>
@@ -74,12 +81,10 @@ export function Navbar() {
                       href='/'>
                       {/* <Icons.logo className='h-6 w-6' /> */}
                       <div className='mb-2 mt-4 text-lg font-medium'>
-                        shadcn/ui
+                        Tune Stats
                       </div>
                       <p className='text-sm leading-tight text-muted-foreground'>
-                        Beautifully designed components that you can copy and
-                        paste into your apps. Accessible. Customizable. Open
-                        Source.
+                        Unlock Your Sound. Track. Discover. Repeat.
                       </p>
                     </a>
                   </NavigationMenuLink>
