@@ -123,10 +123,10 @@ export function Navbar() {
                     >
                       <ListItem href={component.href}>
                         <div className="flex items-center">
-                          <span className="text-xs bg-blue-500 text-white px-2 py-1 border border-blue-300 rounded-lg transition-all hover:bg-blue-400 mr-2">
+                          <span className="">{component.title}</span>
+                          <span className="text-xs bg-blue-500 text-white px-2 py-1 border border-blue-300 rounded-lg transition-all hover:bg-blue-400 ml-2">
                             PRO
                           </span>
-                          <span className="">{component.title}</span>
                         </div>
                       </ListItem>
                       <div className="text-sm">{component.description}</div>
