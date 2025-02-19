@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import * as React from "react";
+import Link from "next/link";
+import Image from "next/image";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 //import { Icons } from '@/components/icons';
 import {
   NavigationMenu,
@@ -14,102 +14,107 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
+} from "@/components/ui/navigation-menu";
 
 const components: { title: string; href: string; description: string }[] = [
   {
-    title: 'Alert Dialog',
-    href: '/docs/primitives/alert-dialog',
+    title: "Favorite Genres",
+    href: "/docs/primitives/alert-dialog",
     description:
-      'A modal dialog that interrupts the user with important content and expects a response.',
+      "Discover your top genres and find more tracks that match your vibe.",
   },
   {
-    title: 'Hover Card',
-    href: '/docs/primitives/hover-card',
+    title: "Charts",
+    href: "/docs/primitives/hover-card",
     description:
-      'For sighted users to preview content available behind a link.',
+      "Explore your weekly vibe – see how your music shifts from day to day.",
   },
   {
-    title: 'Progress',
-    href: '/docs/primitives/progress',
+    title: "Listening Time",
+    href: "/docs/primitives/progress",
     description:
-      'Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.',
+      "Track your total listening time and see your most dedicated music moments.",
   },
   {
-    title: 'Scroll-area',
-    href: '/docs/primitives/scroll-area',
-    description: 'Visually or semantically separates content.',
+    title: "Favorite Songs",
+    href: "/docs/primitives/scroll-area",
+    description:
+      "Discover your all-time favorite songs, the ones you can't stop playing!",
   },
   {
-    title: 'Tabs',
-    href: '/docs/primitives/tabs',
+    title: "Monthly Wrapped",
+    href: "/docs/primitives/tabs",
     description:
-      'A set of layered sections of content—known as tab panels—that are displayed one at a time.',
+      "Relive your month in music—your top tracks and artists all in one place!",
   },
   {
-    title: 'Tooltip',
-    href: '/docs/primitives/tooltip',
+    title: "AI Recomendation",
+    href: "/docs/primitives/tooltip",
     description:
-      'A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.',
+      "Get personalized music suggestions based on your unique taste.",
   },
 ];
 
 export function Navbar() {
   return (
-    <nav className='fixed top-0 left-0 right-0 bg-background z-50 flex items-center px-4 py-2'>
-      <div className='flex items-center space-x-4'>
-        <Link href='/'>
+    <nav className="fixed top-0 left-0 right-0 bg-background z-50 flex items-center px-4 py-2">
+      <div className="flex items-center space-x-4">
+        <Link href="/">
           <Image
-            src='/tune_stats_logo.png' // Corrected path
-            alt='Logo'
+            src="/tune_stats_logo.png" // Corrected path
+            alt="Logo"
             width={40}
             height={40}
           />
         </Link>
       </div>
       <NavigationMenu>
-        {' '}
-        <NavigationMenuList className='ml-4'>
+        {" "}
+        <NavigationMenuList className="ml-4">
           <NavigationMenuItem>
             <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <ul className='grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
-                <li className='row-span-3'>
+              <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                <li className="row-span-3">
                   <NavigationMenuLink asChild>
                     <a
-                      className='flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md'
-                      href='/'>
+                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                      href="/"
+                    >
                       {/* <Icons.logo className='h-6 w-6' /> */}
-                      <div className='mb-2 mt-4 text-lg font-medium'>
+                      <div className="mb-2 mt-4 text-lg font-medium">
                         Tune Stats
                       </div>
-                      <p className='text-sm leading-tight text-muted-foreground'>
+                      <p className="text-sm leading-tight text-muted-foreground">
                         Unlock Your Sound. Track. Discover. Repeat.
                       </p>
                     </a>
                   </NavigationMenuLink>
                 </li>
-                <ListItem href='/docs' title='Introduction'>
-                  Re-usable components built using Radix UI and Tailwind CSS.
+                <ListItem href="/docs" title="Introduction">
+                  Enhance your music journey with personalized recommendations.
                 </ListItem>
-                <ListItem href='/docs/installation' title='Installation'>
-                  How to install dependencies and structure your app.
+                <ListItem href="/docs/installation" title="AI Recomendation">
+                  Get personalized music suggestions based on your unique taste
+                  and listening habits.
                 </ListItem>
-                <ListItem href='/docs/primitives/typography' title='Typography'>
-                  Styles for headings, paragraphs, lists...etc
+                <ListItem href="/docs/primitives/typography" title="Stats">
+                  Track your listening trends, top artists, and favorite genres
+                  over time.
                 </ListItem>
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuTrigger>Components</NavigationMenuTrigger>
+            <NavigationMenuTrigger>Features</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <ul className='grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] '>
+              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                 {components.map((component) => (
                   <ListItem
                     key={component.title}
                     title={component.title}
-                    href={component.href}>
+                    href={component.href}
+                  >
                     {component.description}
                   </ListItem>
                 ))}
@@ -117,7 +122,7 @@ export function Navbar() {
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href='/docs' legacyBehavior passHref>
+            <Link href="/docs" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Documentation
               </NavigationMenuLink>
@@ -130,8 +135,8 @@ export function Navbar() {
 }
 
 const ListItem = React.forwardRef<
-  React.ElementRef<'a'>,
-  React.ComponentPropsWithoutRef<'a'>
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
 >(({ className, title, children, ...props }, ref) => {
   return (
     <li>
@@ -139,12 +144,13 @@ const ListItem = React.forwardRef<
         <a
           ref={ref}
           className={cn(
-            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
           )}
-          {...props}>
-          <div className='text-sm font-medium leading-none'>{title}</div>
-          <p className='line-clamp-2 text-sm leading-snug text-muted-foreground'>
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
         </a>
@@ -152,4 +158,4 @@ const ListItem = React.forwardRef<
     </li>
   );
 });
-ListItem.displayName = 'ListItem';
+ListItem.displayName = "ListItem";
