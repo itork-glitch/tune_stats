@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { FaSpotify } from 'react-icons/fa';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 import { cn } from '@/lib/utils';
 import {
