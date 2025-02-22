@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { FaSpotify } from 'react-icons/fa';
-import { supabase } from '@/lib/supabase';
-
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Session } from '@supabase/auth-helpers-nextjs';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { AvatarImage } from '@radix-ui/react-avatar';
+import { components } from '@/constants/navbar';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -17,69 +20,56 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
-import React from 'react';
-
-const components: {
-  title: string;
-  href: string;
-  description: string;
-  pro: boolean;
-}[] = [
-  {
-    title: 'Favorite Genres',
-    href: '/docs/primitives/alert-dialog',
-    description:
-      'Discover your top genres and find more tracks that match your vibe.',
-    pro: false,
-  },
-  {
-    title: 'Charts',
-    href: '/docs/primitives/hover-card',
-    description:
-      'Explore your weekly vibe – see how your music shifts from day to day.',
-    pro: false,
-  },
-  {
-    title: 'Listening Time',
-    href: '/docs/primitives/progress',
-    description:
-      'Track your total listening time and see your most dedicated music moments.',
-    pro: false,
-  },
-  {
-    title: 'Favorite Songs',
-    href: '/docs/primitives/scroll-area',
-    description:
-      "Discover your all-time favorite songs, the ones you can't stop playing!",
-    pro: false,
-  },
-  {
-    title: 'Monthly Wrapped',
-    href: '/docs/primitives/tabs',
-    description:
-      'Relive your month in music—your top tracks and artists all in one place!',
-    pro: true,
-  },
-  {
-    title: 'AI Recomendation',
-    href: '/docs/primitives/tooltip',
-    description:
-      'Get personalized music suggestions based on your unique taste.',
-    pro: true,
-  },
-];
-
-async function signInWithSpotify() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'spotify',
-  });
-}
-
-const loginWithSpotify = async () => {
-  signInWithSpotify();
-};
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function Navbar() {
+  const supabase = createClientComponentClient();
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    // Get the current session
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  async function signInWithSpotify() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'spotify',
+    });
+    if (error) {
+      console.error('Error logging in with Spotify:', error.message);
+      return;
+    }
+  }
+
+  const loginWithSpotify = async () => {
+    signInWithSpotify();
+  };
+
   return (
     <nav className='fixed top-0 left-0 right-0 bg-background z-50 flex items-center justify-between px-4 py-2'>
       <div className='flex items-center'>
@@ -159,10 +149,40 @@ export function Navbar() {
         </NavigationMenu>
       </div>
       <div>
-        <Button onClick={() => loginWithSpotify()}>
-          Log with&nbsp;
-          <FaSpotify className='text-2xl' />
-        </Button>
+        {!session ? (
+          <Button onClick={() => loginWithSpotify()}>
+            Log with&nbsp;
+            <FaSpotify className='text-2xl' />
+          </Button>
+        ) : (
+          <div className='flex items-center space-x-2'>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Avatar>
+                  <AvatarImage src={session.user.user_metadata.avatar_url} />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className='-translate-x-2'>
+                <DropdownMenuLabel className='flex items-center gap-0.5'>
+                  <span className='text-slate-400'>
+                    {session.user.user_metadata.full_name}
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem>Playground</DropdownMenuItem>
+                <DropdownMenuItem>Billing</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
+                  <span className='text-red-600'>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
     </nav>
   );
