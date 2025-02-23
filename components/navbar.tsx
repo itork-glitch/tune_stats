@@ -9,7 +9,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Session } from '@supabase/auth-helpers-nextjs';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { AvatarImage } from '@radix-ui/react-avatar';
-import { components } from '@/constants/navbar';
+import { useSearchParams } from 'next/navigation';
+import { components, errorsData } from '@/constants/navbar';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -28,10 +29,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 export function Navbar() {
   const supabase = createClientComponentClient();
   const [session, setSession] = useState<Session | null>(null);
+
+  const params = useSearchParams();
+  const error_URL = params.get('error_code');
 
   useEffect(() => {
     // Get the current session
@@ -60,10 +65,8 @@ export function Navbar() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'spotify',
     });
-    if (error) {
-      console.error('Error logging in with Spotify:', error.message);
-      return;
-    }
+    console.log(data, error);
+    console.log(error_URL);
   }
 
   const loginWithSpotify = async () => {
@@ -165,7 +168,7 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className='-translate-x-2'>
                 <DropdownMenuLabel className='flex items-center gap-0.5'>
-                  <span className='text-slate-400'>
+                  <span className='text-muted-foreground'>
                     {session.user.user_metadata.full_name}
                   </span>
                 </DropdownMenuLabel>
@@ -184,9 +187,28 @@ export function Navbar() {
           </div>
         )}
       </div>
+      <ErrorAlert errorCode={error_URL} />
     </nav>
   );
 }
+
+const ErrorAlert = ({ errorCode }: { errorCode?: string | null }) => {
+  if (!errorCode) return null;
+
+  const error = errorsData.find((err) => err.code === errorCode);
+
+  if (!error) return null;
+
+  const Icon = error.icon;
+
+  return (
+    <Alert className='fixed bottom-4 right-4 z-50 w-[20vw]'>
+      <Icon className='h-5 w-5' />
+      <AlertTitle>{error.title}</AlertTitle>
+      <AlertDescription>{error.description}</AlertDescription>
+    </Alert>
+  );
+};
 
 const ListItem = React.forwardRef<
   React.ElementRef<'a'>,

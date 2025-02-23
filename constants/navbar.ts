@@ -1,3 +1,12 @@
+import {
+  Terminal,
+  MailWarning,
+  Timer,
+  Lock,
+  UserX,
+  AlertTriangle,
+} from 'lucide-react';
+
 export const components: {
   title: string;
   href: string;
@@ -45,5 +54,42 @@ export const components: {
     description:
       'Get personalized music suggestions based on your unique taste.',
     pro: true,
+  },
+];
+
+export const errorsData = [
+  {
+    code: 'provider_email_needs_verification',
+    title: 'Verify your email',
+    description:
+      'Please check your inbox and verify your email address to continue.',
+    icon: MailWarning,
+  },
+  {
+    code: 'over_email_send_rate_limit',
+    title: 'Too many requests',
+    description:
+      'You can request a new email in a few moments. Please wait and try again later.',
+    icon: Timer,
+  },
+  {
+    code: 'invalid_grant',
+    title: 'Login failed',
+    description:
+      'The login credentials you entered are incorrect. Please try again.',
+    icon: Lock,
+  },
+  {
+    code: 'user_not_found',
+    title: 'User not found',
+    description:
+      'No account is associated with this email. Please check your email or sign up.',
+    icon: UserX,
+  },
+  {
+    code: 'server_error',
+    title: 'Oops! Something went wrong',
+    description: 'We encountered a server issue. Please try again later.',
+    icon: AlertTriangle,
   },
 ];
