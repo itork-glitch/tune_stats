@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,8 +8,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Session } from '@supabase/auth-helpers-nextjs';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { AvatarImage } from '@radix-ui/react-avatar';
-import { useSearchParams } from 'next/navigation';
-import { components, errorsData } from '@/constants/navbar';
+import { components } from '@/constants/navbar';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -181,7 +179,9 @@ export function Navbar() {
           </div>
         )}
       </div>
-      <ErrorHandler />
+      <Suspense>
+        <ErrorHandler />
+      </Suspense>
     </nav>
   );
 }
