@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { FaSpotify } from 'react-icons/fa';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Session } from '@supabase/auth-helpers-nextjs';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { AvatarImage } from '@radix-ui/react-avatar';
-import { useSearchParams } from 'next/navigation';
-import { components, errorsData } from '@/constants/navbar';
-import { cn } from '@/lib/utils';
+import React, { useEffect, useState, Suspense } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { FaSpotify } from "react-icons/fa";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Session } from "@supabase/auth-helpers-nextjs";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { AvatarImage } from "@radix-ui/react-avatar";
+import { useSearchParams } from "next/navigation";
+import { components, errorsData } from "@/constants/navbar";
+import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,7 +20,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
+} from "@/components/ui/navigation-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,15 +28,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+} from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 export function Navbar() {
   const supabase = createClientComponentClient();
   const [session, setSession] = useState<Session | null>(null);
 
   const params = useSearchParams();
-  const error_URL = params.get('error_code');
+  const error_URL = params.get("error_code");
 
   useEffect(() => {
     // Get the current session
@@ -63,7 +63,7 @@ export function Navbar() {
 
   async function signInWithSpotify() {
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'spotify',
+      provider: "spotify",
     });
     console.log(data, error);
     console.log(error_URL);
@@ -74,51 +74,52 @@ export function Navbar() {
   };
 
   return (
-    <nav className='fixed top-0 left-0 right-0 bg-background z-50 flex items-center justify-between px-4 py-2'>
-      <div className='flex items-center'>
-        <div className='flex items-center space-x-4'>
-          <Link href='/'>
+    <nav className="fixed top-0 left-0 right-0 bg-background z-50 flex items-center justify-between px-4 py-2">
+      <div className="flex items-center">
+        <div className="flex items-center space-x-4">
+          <Link href="/">
             <Image
-              src='/tune_stats_logo.png'
-              alt='Logo'
+              src="/tune_stats_logo.png"
+              alt="Logo"
               width={40}
               height={40}
             />
           </Link>
         </div>
         <NavigationMenu>
-          <NavigationMenuList className='ml-4'>
+          <NavigationMenuList className="ml-4">
             <NavigationMenuItem>
               <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className='grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
-                  <li className='row-span-3'>
+                <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                  <li className="row-span-3">
                     <NavigationMenuLink asChild>
                       <a
-                        className='flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md'
-                        href='/'>
+                        className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                        href="/"
+                      >
                         <Image
-                          src={'/tune_stats_logo.png'}
-                          alt='TuneStats Logo'
+                          src={"/tune_stats_logo.png"}
+                          alt="TuneStats Logo"
                           height={64}
                           width={64}
                         />
-                        <div className='text-lg font-medium'>Tune Stats</div>
-                        <p className='text-sm leading-tight text-muted-foreground'>
+                        <div className="text-lg font-medium">Tune Stats</div>
+                        <p className="text-sm leading-tight text-muted-foreground">
                           Unlock Your Sound. Track. Discover. Repeat.
                         </p>
                       </a>
                     </NavigationMenuLink>
                   </li>
-                  <ListItem href='/docs' title='Introduction'>
+                  <ListItem href="/docs" title="Introduction">
                     Enhance your music journey with personalized
                     recommendations.
                   </ListItem>
-                  <ListItem href='/docs/installation' title='AI Recomendation'>
+                  <ListItem href="/docs/installation" title="AI Recomendation">
                     Get personalized music suggestions based on your unique
                     taste and listening habits.
                   </ListItem>
-                  <ListItem href='/docs/primitives/typography' title='Stats'>
+                  <ListItem href="/docs/primitives/typography" title="Stats">
                     Track your listening trends, top artists, and favorite
                     genres over time.
                   </ListItem>
@@ -128,13 +129,14 @@ export function Navbar() {
             <NavigationMenuItem>
               <NavigationMenuTrigger>Features</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className='grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]'>
+                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                   {components.map((component) => (
                     <ListItem
                       key={component.title}
                       title={component.title}
                       pro={component.pro}
-                      href={component.href}>
+                      href={component.href}
+                    >
                       {component.description}
                     </ListItem>
                   ))}
@@ -142,7 +144,7 @@ export function Navbar() {
               </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href='/docs' legacyBehavior passHref>
+              <Link href="/docs" legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                   Pricing
                 </NavigationMenuLink>
@@ -155,10 +157,10 @@ export function Navbar() {
         {!session ? (
           <Button onClick={() => loginWithSpotify()}>
             Log with&nbsp;
-            <FaSpotify className='text-2xl' />
+            <FaSpotify className="text-2xl" />
           </Button>
         ) : (
-          <div className='flex items-center space-x-2'>
+          <div className="flex items-center space-x-2">
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <Avatar>
@@ -166,9 +168,9 @@ export function Navbar() {
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className='-translate-x-2'>
-                <DropdownMenuLabel className='flex items-center gap-0.5'>
-                  <span className='text-muted-foreground'>
+              <DropdownMenuContent className="-translate-x-2">
+                <DropdownMenuLabel className="flex items-center gap-0.5">
+                  <span className="text-muted-foreground">
                     {session.user.user_metadata.full_name}
                   </span>
                 </DropdownMenuLabel>
@@ -180,14 +182,16 @@ export function Navbar() {
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
-                  <span className='text-red-600'>Sign out</span>
+                  <span className="text-red-600">Sign out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         )}
       </div>
-      <ErrorAlert errorCode={error_URL} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ErrorAlert errorCode={error_URL} />
+      </Suspense>
     </nav>
   );
 }
@@ -202,8 +206,8 @@ const ErrorAlert = ({ errorCode }: { errorCode?: string | null }) => {
   const Icon = error.icon;
 
   return (
-    <Alert className='fixed bottom-4 right-4 z-50 w-[20vw]'>
-      <Icon className='h-5 w-5' />
+    <Alert className="fixed bottom-4 right-4 z-50 w-[20vw]">
+      <Icon className="h-5 w-5" />
       <AlertTitle>{error.title}</AlertTitle>
       <AlertDescription>{error.description}</AlertDescription>
     </Alert>
@@ -211,8 +215,8 @@ const ErrorAlert = ({ errorCode }: { errorCode?: string | null }) => {
 };
 
 const ListItem = React.forwardRef<
-  React.ElementRef<'a'>,
-  React.ComponentPropsWithoutRef<'a'> & { pro?: boolean }
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a"> & { pro?: boolean }
 >(({ className, title, children, pro, ...props }, ref) => {
   const [hoverToggle, setHoverToggle] = useState(false);
   return (
@@ -223,20 +227,22 @@ const ListItem = React.forwardRef<
           onMouseLeave={() => setHoverToggle(false)}
           ref={ref}
           className={cn(
-            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
           )}
-          {...props}>
-          <div className='flex items-center text-sm font-medium leading-none'>
+          {...props}
+        >
+          <div className="flex items-center text-sm font-medium leading-none">
             {title}
             {pro && (
               <span
-                className={`ml-1 px-2 py-0.5 text-xs font-semibold border-2 rounded-lg ${hoverToggle ? 'bg-indigo-600 border-indigo-600' : 'bg-indigo-800 border-indigo-600'} transition-colors duration-350`}>
+                className={`ml-1 px-2 py-0.5 text-xs font-semibold border-2 rounded-lg ${hoverToggle ? "bg-indigo-600 border-indigo-600" : "bg-indigo-800 border-indigo-600"} transition-colors duration-350`}
+              >
                 PRO
               </span>
             )}
           </div>
-          <p className='line-clamp-2 text-sm leading-snug text-muted-foreground'>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
         </a>
@@ -244,4 +250,4 @@ const ListItem = React.forwardRef<
     </li>
   );
 });
-ListItem.displayName = 'ListItem';
+ListItem.displayName = "ListItem";
