@@ -32,13 +32,14 @@ export default function Hero() {
           priority
         />
 
+        {/* Karty po lewej i prawej stronie */}
         {songsCards.map((card, index) => (
           <div
             key={index}
-            className="absolute"
+            className={`absolute`}
             style={{
-              top: `${card.position[0]}%`,
-              [card.position[2] ? "left" : "right"]: `${card.position[1]}%`,
+              top: `${card.position[0]}%`, // Różna wysokość
+              [card.position[2] ? "left" : "right"]: `${card.position[1]}%`, // Różne pozycje lewo/prawo
             }}
           >
             <MiniSpotifyCard
