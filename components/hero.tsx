@@ -8,7 +8,7 @@ import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
 
 function PhoneModel(props: any) {
-  const gltf = useGLTF('/iphone_15_pro_max.glb');
+  const gltf = useGLTF('/iphone.glb');
   const meshRef = useRef<any>(null);
 
   useFrame(() => {
@@ -49,7 +49,7 @@ export default function Hero() {
         <div className='absolute left-1/2 -translate-x-1/2 w-[400px] h-[1200px] bottom-0 translate-y-[60%] z-50'>
           <Canvas>
             <ambientLight intensity={0.5} />
-            <directionalLight position={[10, 10, 5]} />
+            <directionalLight position={[10, 10, 10]} />
             <PhoneModel scale={[1.3, 1.225, 1.3]} />
           </Canvas>
         </div>
