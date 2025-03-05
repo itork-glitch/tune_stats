@@ -1,47 +1,69 @@
-import { MiniSpotifyCard } from "./miniSpotifyCard";
-import Image from "next/image";
-import { songsCards } from "../constants/hero";
+'use client';
+
+import React, { useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
+import * as THREE from 'three';
+import { MiniSpotifyCard } from './miniSpotifyCard';
+import { songsCards } from '../constants/hero';
+
+function PhoneModel(props: any) {
+  // Upewnij się, że model znajduje się w folderze public
+  const gltf = useGLTF('/iphone_15_pro_max.glb');
+  const meshRef = useRef<any>(null);
+
+  useFrame(() => {
+    if (meshRef.current) {
+      const scrollPercent =
+        window.scrollY / (document.body.scrollHeight - window.innerHeight);
+      const targetRotation = scrollPercent * Math.PI;
+      // Używamy lerp, by interpolować obrót modelu
+      meshRef.current.rotation.y = THREE.MathUtils.lerp(
+        meshRef.current.rotation.y,
+        targetRotation,
+        0.1
+      );
+    }
+  });
+
+  return <primitive ref={meshRef} object={gltf.scene} {...props} />;
+}
 
 export default function Hero() {
   return (
-    <section className="bg-black relative flex flex-col items-center justify-center min-h-screen px-4">
+    <section className='bg-black relative flex flex-col items-center justify-center min-h-screen px-4'>
       {/* Tekst powyżej telefonu */}
-      <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+      <div className='text-center mb-10'>
+        <h1 className='text-4xl md:text-6xl font-bold text-white mb-4'>
           Your AI-Driven Spotify Companion
         </h1>
-        <p className="text-lg md:text-xl text-gray-300 max-w-xl mx-auto">
+        <p className='text-lg md:text-xl text-gray-300 max-w-xl mx-auto'>
           Get personalized song suggestions and real-time streaming stats.
         </p>
-        <div className="mt-6">
-          <button className="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-full font-semibold transition-colors">
+        <div className='mt-6'>
+          <button className='bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-full font-semibold transition-colors'>
             Connect with Spotify
           </button>
         </div>
       </div>
 
-      {/* Kontener z telefonem i kartami */}
-      <div className="relative w-full max-w-5xl h-[600px]">
-        {/* Telefon wyśrodkowany absolutnie */}
-        <Image
-          src="/phone.png"
-          alt="Phone"
-          width={250}
-          height={500}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-          priority
-        />
+      <div className='relative w-full max-w-5xl h-[600px]'>
+        <div className='absolute left-1/2 -translate-x-1/2 w-[400px] h-[1200px] bottom-0 translate-y-[60%]'>
+          <Canvas>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[10, 10, 5]} />
+            <PhoneModel scale={[1.3, 1.225, 1.3]} />
+          </Canvas>
+        </div>
 
-        {/* Karty po lewej i prawej stronie */}
         {songsCards.map((card, index) => (
           <div
             key={index}
-            className={`absolute`}
+            className='absolute'
             style={{
-              top: `${card.position[0]}%`, // Różna wysokość
-              [card.position[2] ? "left" : "right"]: `${card.position[1]}%`, // Pozycje lewo/prawo
-            }}
-          >
+              top: `${card.position[0]}%`,
+              [card.position[2] ? 'left' : 'right']: `${card.position[1]}%`,
+            }}>
             <MiniSpotifyCard
               albumArt={card.albumArt}
               title={card.title}
