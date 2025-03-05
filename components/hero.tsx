@@ -8,7 +8,6 @@ import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
 
 function PhoneModel(props: any) {
-  // Upewnij się, że model znajduje się w folderze public
   const gltf = useGLTF('/iphone_15_pro_max.glb');
   const meshRef = useRef<any>(null);
 
@@ -32,7 +31,6 @@ function PhoneModel(props: any) {
 export default function Hero() {
   return (
     <section className='bg-black relative flex flex-col items-center justify-center min-h-screen px-4'>
-      {/* Tekst powyżej telefonu */}
       <div className='text-center mb-10'>
         <h1 className='text-4xl md:text-6xl font-bold text-white mb-4'>
           Your AI-Driven Spotify Companion
@@ -48,7 +46,7 @@ export default function Hero() {
       </div>
 
       <div className='relative w-full max-w-5xl h-[600px]'>
-        <div className='absolute left-1/2 -translate-x-1/2 w-[400px] h-[1200px] bottom-0 translate-y-[60%]'>
+        <div className='absolute left-1/2 -translate-x-1/2 w-[400px] h-[1200px] bottom-0 translate-y-[60%] z-50'>
           <Canvas>
             <ambientLight intensity={0.5} />
             <directionalLight position={[10, 10, 5]} />
