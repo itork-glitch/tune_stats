@@ -32,9 +32,14 @@ export default function Hero() {
           priority
         />
 
-        {songsCards.map((card) => (
+        {songsCards.map((card, index) => (
           <div
-            className={`absolute top-[${card.position[0]}%] ${card.position[2] ? "left" : "right"}-[${card.position[1]}%]`}
+            key={index}
+            className="absolute"
+            style={{
+              top: `${card.position[0]}%`,
+              [card.position[2] ? "left" : "right"]: `${card.position[1]}%`,
+            }}
           >
             <MiniSpotifyCard
               albumArt={card.albumArt}
