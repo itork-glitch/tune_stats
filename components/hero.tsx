@@ -6,6 +6,7 @@ import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
+import { FaSpotify } from 'react-icons/fa';
 
 function PhoneModel(props: any) {
   const gltf = useGLTF('/iphone.glb');
@@ -16,7 +17,6 @@ function PhoneModel(props: any) {
       const scrollPercent =
         window.scrollY / (document.body.scrollHeight - window.innerHeight);
       const targetRotation = scrollPercent * Math.PI;
-      // Używamy lerp, by interpolować obrót modelu
       meshRef.current.rotation.y = THREE.MathUtils.lerp(
         meshRef.current.rotation.y,
         targetRotation,
@@ -38,9 +38,9 @@ export default function Hero() {
         <p className='text-lg md:text-xl text-gray-300 max-w-xl mx-auto'>
           Get personalized song suggestions and real-time streaming stats.
         </p>
-        <div className='mt-6'>
-          <button className='bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-full font-semibold transition-colors'>
-            Connect with Spotify
+        <div className='mt-6 flex justify-center'>
+          <button className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-1 justify-center'>
+            <FaSpotify className='text-2xl' /> Connect with Spotify
           </button>
         </div>
       </div>
