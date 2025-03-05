@@ -39,7 +39,7 @@ export default function Hero() {
             className={`absolute`}
             style={{
               top: `${card.position[0]}%`, // Różna wysokość
-              [card.position[2] ? "left" : "right"]: `${card.position[1]}%`, // Różne pozycje lewo/prawo
+              [card.position[2] ? "left" : "right"]: `${card.position[1]}%`, // Pozycje lewo/prawo
             }}
           >
             <MiniSpotifyCard

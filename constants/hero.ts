@@ -7,39 +7,42 @@ interface songCardsInterface {
 }
 
 export const songsCards: songCardsInterface[] = [
+  // 3 karty po lewej stronie
   {
     title: "A lot",
     artist: "21 Savage",
     albumArt: "/album_1.png",
     duration: 268,
-    position: [5, 25, true], // Top: 5% od góry, Left: 25%
+    position: [10, 0, true], // Top: 10% od góry, Left: 10%
   },
   {
     albumArt: "/album_2.png",
     title: "Out West",
     artist: "Jackboys, Travis Scott",
     duration: 157,
-    position: [25, 35, true], // Top: 25%, Left: 35%
+    position: [50, 20, true], // Top: 30%, Left: 20%
   },
   {
     albumArt: "/album_3.png",
     title: "GDP",
     artist: "Central Cee, 21 Savage",
     duration: 154,
-    position: [50, 50, true], // Top: 50%, Left: 50%
+    position: [-5, 27, true], // Top: 50%, Left: 30%
   },
+
+  // 2 karty po prawej stronie
   {
     albumArt: "/album_4.png",
     title: "Mood",
     artist: "24kGoldn",
     duration: 200,
-    position: [20, 75, false], // Top: 20%, Right: 75%
+    position: [1, 1, false], // Top: 10%, Right: 10%
   },
   {
     albumArt: "/album_5.png",
     title: "Blinding Lights",
     artist: "The Weeknd",
     duration: 250,
-    position: [40, 80, false], // Top: 40%, Right: 80%
+    position: [40, 20, false], // Top: 30%, Right: 20%
   },
 ];
