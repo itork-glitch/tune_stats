@@ -66,7 +66,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className='fixed top-0 left-0 right-0 bg-background z-50 flex items-center justify-between px-4 py-2'>
+    <nav className='fixed top-0 left-0 right-0 bg-[hsl(0,0%,3.9%)] z-50 flex items-center justify-between px-4 py-2'>
       <div className='flex items-center'>
         <div className='flex items-center space-x-4'>
           <Link href='/'>
@@ -83,14 +83,14 @@ export function Navbar() {
             <NavigationMenuItem>
               <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className='grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]'>
+                <ul className='grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[0.75fr_1fr]'>
                   <li className='row-span-3'>
                     <NavigationMenuLink asChild>
                       <a
                         className='flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md'
                         href='/'>
                         <Image
-                          src={'/tune_stats_logo.png'}
+                          src='/tune_stats_logo.png'
                           alt='TuneStats Logo'
                           height={64}
                           width={64}
@@ -199,7 +199,7 @@ const ListItem = React.forwardRef<
           onMouseLeave={() => setHoverToggle(false)}
           ref={ref}
           className={cn(
-            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-[hsl(0,0%,14.9%)] focus:text-accent-foreground',
             className
           )}
           {...props}>
@@ -207,7 +207,11 @@ const ListItem = React.forwardRef<
             {title}
             {pro && (
               <span
-                className={`ml-1 px-2 py-0.5 text-xs font-semibold border-2 rounded-lg ${hoverToggle ? 'bg-indigo-600 border-indigo-600' : 'bg-indigo-800 border-indigo-600'} transition-colors duration-350`}>
+                className={`ml-1 px-2 py-0.5 text-xs font-semibold border-2 rounded-lg ${
+                  hoverToggle
+                    ? 'bg-indigo-600 border-indigo-600'
+                    : 'bg-indigo-800 border-indigo-600'
+                } transition-colors duration-[350ms]`}>
                 PRO
               </span>
             )}
