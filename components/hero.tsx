@@ -63,7 +63,7 @@ export default function Hero() {
       </div>
 
       <div className='relative w-full max-w-5xl h-[600px]'>
-        <div className='absolute left-1/2 -translate-x-1/2 w-[400px] h-[1200px] bottom-0 translate-y-[60%] z-50'>
+        <div className='absolute left-1/2 translate-y-[60%] slidePhone -translate-x-1/2 w-[400px] h-[1200px] bottom-0 z-50'>
           <Canvas>
             <ambientLight intensity={0.5} />
             <directionalLight position={[10, 10, 10]} />
