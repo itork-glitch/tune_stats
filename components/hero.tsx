@@ -7,8 +7,7 @@ import * as THREE from 'three';
 import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
 import { FaSpotify } from 'react-icons/fa';
-import { BlurText } from './blur-text';
-/* import BlurText from './ui/blurText'; */
+import { BlurText } from './ui/blurText';
 
 function PhoneModel(props: any) {
   const gltf = useGLTF('/iphone.glb');
@@ -34,18 +33,21 @@ export default function Hero() {
   return (
     <section className='bg-black relative flex flex-col items-center justify-center min-h-screen px-4'>
       <div className='text-center mb-10'>
-        {' '}
         <BlurText
           text='Amplify Your Spotify Experience'
-          className='text-4xl font-bold text-center flex items-center justify-center pb-1'
+          className='text-5xl font-bold text-center flex items-center justify-center pb-1'
           animateBy='letters'
           direction='top'
           staggerDelay={30}
         />
-        <p className='text-lg md:text-xl text-gray-300 max-w-xl mx-auto'>
-          Get personalized song suggestions and real-time streaming stats.
-        </p>
-        <div className='mt-6 flex justify-center'>
+        <BlurText
+          text='Get personalized song suggestions and real-time streaming stats.'
+          className='text-md md:text-xl text-gray-300 max-w-xl mx-auto flex items-center justify-center'
+          animateBy='words'
+          direction='bottom'
+          staggerDelay={90}
+        />
+        <div className='my-2 flex justify-center'>
           <button className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center'>
             <FaSpotify className='text-2xl' /> Connect with Spotify
           </button>

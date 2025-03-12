@@ -103,8 +103,6 @@ export function BlurText<T extends Element = HTMLDivElement>({
     }
   };
 
-  // Zamiast tworzyć oddzielny komponent z rzutowaniem, używamy React.createElement,
-  // dzięki czemu JSX sam prawidłowo rozpozna przekazany typ oraz ref.
   return React.createElement(
     Component,
     { ref: containerRef, className: cn('flex flex-wrap', className) },
