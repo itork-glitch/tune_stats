@@ -45,7 +45,7 @@ export function BlurText({
   onAnimationComplete,
   as: Component = "p",
 }: BlurTextProps) {
-  const containerRef = useRef<Element>(null); // Change here
+  const containerRef = useRef<HTMLDivElement>(null); // Change here to HTMLDivElement
   const [elements, setElements] = useState<string[]>([]);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const animatedCount = useRef(0);
