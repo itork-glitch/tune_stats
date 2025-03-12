@@ -51,7 +51,7 @@ export default function Hero() {
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 70 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: 'easeIn' }}
+          transition={{ duration: 0.7, ease: 'easeIn', delay: 0.3 }}
           className='my-2 flex justify-center'>
           <motion.button
             whileHover={{ scale: 1.05 }}
