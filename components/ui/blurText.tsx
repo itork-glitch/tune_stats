@@ -1,154 +1,142 @@
 'use client';
-import { useRef, useEffect, useState } from 'react';
-import { motion, useAnimation, AnimationControls } from 'framer-motion';
 
-interface BlurTextProps {
-  text?: string;
-  delay?: number;
+import type React from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
+import { useInView } from '@/hooks/use-in-view';
+
+export type AnimateBy = 'words' | 'letters' | 'lines';
+export type Direction = 'top' | 'bottom' | 'left' | 'right' | 'none';
+
+export interface BlurTextProps {
+  text: string;
   className?: string;
-  animateBy?: 'words' | 'letters';
-  direction?: 'top' | 'bottom';
+  elementClassName?: string;
+  animateBy?: AnimateBy;
+  direction?: Direction;
   threshold?: number;
   rootMargin?: string;
-  animationFrom?: Record<string, any>;
-  animationTo?: Record<string, any>[];
-  easing?: string | number | number[];
+  once?: boolean;
+  delay?: number;
+  staggerDelay?: number;
+  duration?: number;
+  blur?: number;
+  distance?: number;
+  easing?: string;
   onAnimationComplete?: () => void;
+  as?: React.ElementType;
 }
 
-interface AnimatedLetterProps {
-  content: string;
-  inView: boolean;
-  delay: number;
-  animationFrom: Record<string, any>;
-  animationSteps: Record<string, any>[];
-  easing: string | number | number[];
-  onComplete?: () => void;
-}
-
-const AnimatedLetter: React.FC<AnimatedLetterProps> = ({
-  content,
-  inView,
-  delay,
-  animationFrom,
-  animationSteps,
-  easing,
-  onComplete,
-}) => {
-  const controls: AnimationControls = useAnimation();
-
-  useEffect(() => {
-    if (inView) {
-      (async () => {
-        // Poczekaj na opóźnienie przypisane do danego elementu
-        await new Promise((res) => setTimeout(res, delay));
-        // Przejdź przez wszystkie etapy animacji
-        for (const step of animationSteps) {
-          await controls.start({
-            ...step,
-            transition: { ease: easing, duration: 0.5 },
-          });
-        }
-        if (onComplete) onComplete();
-      })();
-    }
-  }, [inView, delay, animationSteps, controls, easing, onComplete]);
-
-  return (
-    <motion.span
-      initial={animationFrom}
-      animate={controls}
-      className='inline-block transition-transform will-change-[transform,filter,opacity]'>
-      {content}
-    </motion.span>
-  );
-};
-
-const BlurText: React.FC<BlurTextProps> = ({
-  text = '',
-  delay = 200,
-  className = '',
+export function BlurText({
+  text,
+  className,
+  elementClassName,
   animateBy = 'words',
-  direction = 'top',
+  direction = 'bottom',
   threshold = 0.1,
   rootMargin = '0px',
-  animationFrom,
-  animationTo,
-  easing = 'easeOut',
+  once = true,
+  delay = 0,
+  staggerDelay = 50,
+  duration = 800,
+  blur = 10,
+  distance = 20,
+  easing = 'cubic-bezier(0.25, 0.1, 0.25, 1)',
   onAnimationComplete,
-}) => {
-  // Rozdziel tekst na słowa lub litery
-  const elements = animateBy === 'words' ? text.split(' ') : text.split('');
-  const [inView, setInView] = useState(false);
-  const ref = useRef<HTMLParagraphElement>(null);
+  as: Component = 'p',
+}: BlurTextProps) {
+  const containerRef = useRef<HTMLElement>(null);
+  const [elements, setElements] = useState<string[]>([]);
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const animatedCount = useRef(0);
 
-  // Domyślny stan początkowy – wykorzystujemy właściwość "y" zamiast pełnego translate3d
-  const defaultFrom =
-    animationFrom ||
-    (direction === 'top'
-      ? { filter: 'blur(10px)', opacity: 0, y: -50 }
-      : { filter: 'blur(10px)', opacity: 0, y: 50 });
+  const { inView } = useInView({
+    ref: containerRef,
+    threshold,
+    rootMargin,
+    once,
+  });
 
-  // Domyślna sekwencja animacji – pierwszy krok to zmniejszenie rozmycia i zwiększenie przezroczystości, drugi krok ustawia ostateczny stan
-  const defaultTo = animationTo || [
-    {
-      filter: 'blur(5px)',
-      opacity: 0.5,
-      y: direction === 'top' ? 5 : -5,
-    },
-    { filter: 'blur(0px)', opacity: 1, y: 0 },
-  ];
-
+  // Split text based on animateBy prop
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          if (ref.current) {
-            observer.unobserve(ref.current);
-          }
-        }
-      },
-      { threshold, rootMargin }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (animateBy === 'words') {
+      setElements(text.split(' '));
+    } else if (animateBy === 'letters') {
+      setElements(text.split(''));
+    } else if (animateBy === 'lines') {
+      // Simple line splitting - in a real implementation,
+      // you might want to use a more sophisticated approach
+      setElements(text.split('\n'));
     }
-    return () => observer.disconnect();
-  }, [threshold, rootMargin]);
+  }, [text, animateBy]);
 
-  const handleLetterComplete = () => {
-    animatedCount.current += 1;
-    if (animatedCount.current === elements.length && onAnimationComplete) {
+  // Handle animation completion
+  useEffect(() => {
+    if (isAnimationComplete && onAnimationComplete) {
       onAnimationComplete();
+    }
+  }, [isAnimationComplete, onAnimationComplete]);
+
+  // Reset animation counter when inView changes
+  useEffect(() => {
+    if (!inView) {
+      animatedCount.current = 0;
+      setIsAnimationComplete(false);
+    }
+  }, [inView]);
+
+  // Get transform based on direction
+  const getTransform = (dir: Direction) => {
+    switch (dir) {
+      case 'top':
+        return `translateY(-${distance}px)`;
+      case 'bottom':
+        return `translateY(${distance}px)`;
+      case 'left':
+        return `translateX(-${distance}px)`;
+      case 'right':
+        return `translateX(${distance}px)`;
+      default:
+        return 'translate(0, 0)';
+    }
+  };
+
+  // Handle individual element animation completion
+  const handleElementAnimationComplete = () => {
+    animatedCount.current += 1;
+    if (animatedCount.current === elements.length) {
+      setIsAnimationComplete(true);
     }
   };
 
   return (
-    <p ref={ref} className={`blur-text ${className} flex flex-wrap`}>
-      {elements.map((el, index) => {
-        // W przypadku animacji według słów, dodajemy spację na końcu każdego słowa (oprócz ostatniego)
-        const content =
-          animateBy === 'words' && index < elements.length - 1
-            ? el + '\u00A0'
-            : el;
-        return (
-          <AnimatedLetter
-            key={index}
-            content={content}
-            inView={inView}
-            delay={index * delay}
-            animationFrom={defaultFrom}
-            animationSteps={defaultTo}
-            easing={easing}
-            onComplete={handleLetterComplete}
-          />
-        );
-      })}
-    </p>
+    <Component ref={containerRef} className={cn('flex flex-wrap', className)}>
+      {elements.map((element, index) => (
+        <span
+          key={index}
+          className={cn(
+            'inline-block transition-all will-change-transform will-change-opacity will-change-filter',
+            elementClassName
+          )}
+          style={{
+            filter: inView ? 'blur(0)' : `blur(${blur}px)`,
+            opacity: inView ? 1 : 0,
+            transform: inView ? 'translate(0, 0)' : getTransform(direction),
+            transition: `
+              filter ${duration}ms ${easing} ${delay + index * staggerDelay}ms,
+              opacity ${duration}ms ${easing} ${delay + index * staggerDelay}ms,
+              transform ${duration}ms ${easing} ${delay + index * staggerDelay}ms
+            `,
+            ...(inView && {
+              transitionEnd: {
+                opacity: handleElementAnimationComplete,
+              },
+            }),
+          }}>
+          {element === ' ' ? '\u00A0' : element}
+          {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
+        </span>
+      ))}
+    </Component>
   );
-};
-
-export default BlurText;
+}

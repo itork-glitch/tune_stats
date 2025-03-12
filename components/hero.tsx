@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
 import { FaSpotify } from 'react-icons/fa';
-import BlurText from './ui/blurText';
+import { BlurText } from './blur-text';
 /* import BlurText from './ui/blurText'; */
 
 function PhoneModel(props: any) {
@@ -36,11 +36,11 @@ export default function Hero() {
       <div className='text-center mb-10'>
         {' '}
         <BlurText
-          text='Your AI-Driven Spotify Companion'
-          delay={150}
-          animateBy='words'
+          text='Character by character animation'
+          className='text-2xl font-bold'
+          animateBy='letters'
           direction='top'
-          className='text-6xl mb-8 font-bold'
+          staggerDelay={30}
         />
         <p className='text-lg md:text-xl text-gray-300 max-w-xl mx-auto'>
           Get personalized song suggestions and real-time streaming stats.
