@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
 import { FaSpotify } from 'react-icons/fa';
+import BlurText from './ui/blurText';
 /* import BlurText from './ui/blurText'; */
 
 function PhoneModel(props: any) {
@@ -33,18 +34,19 @@ export default function Hero() {
   return (
     <section className='bg-black relative flex flex-col items-center justify-center min-h-screen px-4'>
       <div className='text-center mb-10'>
-        {/*         <BlurText
+        {' '}
+        <BlurText
           text='Your AI-Driven Spotify Companion'
           delay={150}
           animateBy='words'
           direction='top'
           className='text-6xl mb-8 font-bold'
-        /> */}
+        />
         <p className='text-lg md:text-xl text-gray-300 max-w-xl mx-auto'>
           Get personalized song suggestions and real-time streaming stats.
         </p>
         <div className='mt-6 flex justify-center'>
-          <button className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-1 justify-center'>
+          <button className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center'>
             <FaSpotify className='text-2xl' /> Connect with Spotify
           </button>
         </div>
