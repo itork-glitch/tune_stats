@@ -84,6 +84,7 @@ export default function Hero() {
               title={card.title}
               artist={card.artist}
               duration={card.duration}
+              delay={card.delay}
             />
           </div>
         ))}

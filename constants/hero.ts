@@ -4,6 +4,7 @@ interface songCardsInterface {
   albumArt: string;
   duration: number;
   position: [number, number, boolean]; // [top, left/right offset, isLeft]
+  delay: number;
 }
 
 export const songsCards: songCardsInterface[] = [
@@ -14,6 +15,7 @@ export const songsCards: songCardsInterface[] = [
     albumArt: '/album_1.png',
     duration: 268,
     position: [0, -15, true], // Top: 10% od góry, Left: 10%
+    delay: 0,
   },
   {
     albumArt: '/album_2.png',
@@ -21,6 +23,7 @@ export const songsCards: songCardsInterface[] = [
     artist: 'Jackboys, Travis Scott',
     duration: 157,
     position: [50, 5, true], // Top: 30%, Left: 20%
+    delay: 0.2,
   },
   {
     albumArt: '/album_3.png',
@@ -28,6 +31,7 @@ export const songsCards: songCardsInterface[] = [
     artist: 'Central Cee, 21 Savage',
     duration: 154,
     position: [-5, 25, true], // Top: 50%, Left: 30%
+    delay: 0.4,
   },
 
   // 2 karty po prawej stronie
@@ -37,6 +41,7 @@ export const songsCards: songCardsInterface[] = [
     artist: '24kGoldn',
     duration: 200,
     position: [1, -15, false], // Top: 10%, Right: 10%
+    delay: 0.6,
   },
   {
     albumArt: '/album_5.png',
@@ -44,5 +49,6 @@ export const songsCards: songCardsInterface[] = [
     artist: 'The Weeknd',
     duration: 250,
     position: [43, 10, false], // Top: 30%, Right: 20%
+    delay: 0.8,
   },
 ];
