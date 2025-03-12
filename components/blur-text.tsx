@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { cn } from "@/lib/utils"
-import { useInView } from "@/hooks/use-in-view"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
+import { useInView } from "@/hooks/use-in-view";
 
-export type AnimateBy = "words" | "letters" | "lines"
-export type Direction = "top" | "bottom" | "left" | "right" | "none"
+export type AnimateBy = "words" | "letters" | "lines";
+export type Direction = "top" | "bottom" | "left" | "right" | "none";
 
 export interface BlurTextProps {
-  text: string
-  className?: string
-  elementClassName?: string
-  animateBy?: AnimateBy
-  direction?: Direction
-  threshold?: number
-  rootMargin?: string
-  once?: boolean
-  delay?: number
-  staggerDelay?: number
-  duration?: number
-  blur?: number
-  distance?: number
-  easing?: string
-  onAnimationComplete?: () => void
-  as?: React.ElementType
+  text: string;
+  className?: string;
+  elementClassName?: string;
+  animateBy?: AnimateBy;
+  direction?: Direction;
+  threshold?: number;
+  rootMargin?: string;
+  once?: boolean;
+  delay?: number;
+  staggerDelay?: number;
+  duration?: number;
+  blur?: number;
+  distance?: number;
+  easing?: string;
+  onAnimationComplete?: () => void;
+  as?: React.ElementType;
 }
 
 export function BlurText({
@@ -45,69 +45,67 @@ export function BlurText({
   onAnimationComplete,
   as: Component = "p",
 }: BlurTextProps) {
-  const containerRef = useRef<HTMLElement>(null)
-  const [elements, setElements] = useState<string[]>([])
-  const [isAnimationComplete, setIsAnimationComplete] = useState(false)
-  const animatedCount = useRef(0)
+  const containerRef = useRef<Element>(null); // Change here
+  const [elements, setElements] = useState<string[]>([]);
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+  const animatedCount = useRef(0);
 
   const { inView } = useInView({
     ref: containerRef,
     threshold,
     rootMargin,
     once,
-  })
+  });
 
   // Split text based on animateBy prop
   useEffect(() => {
     if (animateBy === "words") {
-      setElements(text.split(" "))
+      setElements(text.split(" "));
     } else if (animateBy === "letters") {
-      setElements(text.split(""))
+      setElements(text.split(""));
     } else if (animateBy === "lines") {
-      // Simple line splitting - in a real implementation,
-      // you might want to use a more sophisticated approach
-      setElements(text.split("\n"))
+      setElements(text.split("\n"));
     }
-  }, [text, animateBy])
+  }, [text, animateBy]);
 
   // Handle animation completion
   useEffect(() => {
     if (isAnimationComplete && onAnimationComplete) {
-      onAnimationComplete()
+      onAnimationComplete();
     }
-  }, [isAnimationComplete, onAnimationComplete])
+  }, [isAnimationComplete, onAnimationComplete]);
 
   // Reset animation counter when inView changes
   useEffect(() => {
     if (!inView) {
-      animatedCount.current = 0
-      setIsAnimationComplete(false)
+      animatedCount.current = 0;
+      setIsAnimationComplete(false);
     }
-  }, [inView])
+  }, [inView]);
 
   // Get transform based on direction
   const getTransform = (dir: Direction) => {
     switch (dir) {
       case "top":
-        return `translateY(-${distance}px)`
+        return `translateY(-${distance}px)`;
       case "bottom":
-        return `translateY(${distance}px)`
+        return `translateY(${distance}px)`;
       case "left":
-        return `translateX(-${distance}px)`
+        return `translateX(-${distance}px)`;
       case "right":
-        return `translateX(${distance}px)`
+        return `translateX(${distance}px)`;
       default:
-        return "translate(0, 0)"
+        return "translate(0, 0)";
     }
-  }
+  };
 
   // Handle individual element animation completion
   const handleElementAnimationComplete = () => {
-    animatedCount.current += 1
+    animatedCount.current += 1;
     if (animatedCount.current === elements.length) {
-      setIsAnimationComplete(true)
+      setIsAnimationComplete(true);
     }
-  }
+  };
 
   return (
     <Component ref={containerRef} className={cn("flex flex-wrap", className)}>
@@ -116,7 +114,7 @@ export function BlurText({
           key={index}
           className={cn(
             "inline-block transition-all will-change-transform will-change-opacity will-change-filter",
-            elementClassName,
+            elementClassName
           )}
           style={{
             filter: inView ? "blur(0)" : `blur(${blur}px)`,
@@ -127,11 +125,6 @@ export function BlurText({
               opacity ${duration}ms ${easing} ${delay + index * staggerDelay}ms,
               transform ${duration}ms ${easing} ${delay + index * staggerDelay}ms
             `,
-            ...(inView && {
-              transitionEnd: {
-                opacity: handleElementAnimationComplete,
-              },
-            }),
           }}
         >
           {element === " " ? "\u00A0" : element}
@@ -139,6 +132,5 @@ export function BlurText({
         </span>
       ))}
     </Component>
-  )
+  );
 }
-
