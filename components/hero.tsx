@@ -37,7 +37,7 @@ export default function Hero() {
         {' '}
         <BlurText
           text='Amplify Your Spotify Experience'
-          className='text-2xl font-bold text-center flex items-center justify-center'
+          className='text-4xl font-bold text-center flex items-center justify-center pb-1'
           animateBy='letters'
           direction='top'
           staggerDelay={30}
