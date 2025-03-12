@@ -8,6 +8,7 @@ import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
 import { FaSpotify } from 'react-icons/fa';
 import { BlurText } from './ui/blurText';
+import { motion } from 'framer-motion';
 
 function PhoneModel(props: any) {
   const gltf = useGLTF('/iphone.glb');
@@ -47,11 +48,18 @@ export default function Hero() {
           direction='bottom'
           staggerDelay={90}
         />
-        <div className='my-2 flex justify-center'>
-          <button className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center'>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 70 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: 'easeIn' }}
+          className='my-2 flex justify-center'>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center'>
             <FaSpotify className='text-2xl' /> Connect with Spotify
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </div>
 
       <div className='relative w-full max-w-5xl h-[600px]'>
