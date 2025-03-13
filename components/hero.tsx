@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Session } from '@supabase/auth-helpers-nextjs';
 import { MiniSpotifyCard } from './miniSpotifyCard';
 import { songsCards } from '../constants/hero';
 import { FaSpotify } from 'react-icons/fa';
@@ -31,6 +33,40 @@ function PhoneModel(props: any) {
 }
 
 export default function Hero() {
+  const supabase = createClientComponentClient();
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  async function signInWithSpotify() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'spotify',
+    });
+  }
+
+  const loginWithSpotify = async () => {
+    signInWithSpotify();
+  };
   return (
     <section className='bg-black relative flex flex-col items-center justify-center min-h-screen px-4'>
       <div className='text-center mb-10'>
@@ -56,7 +92,8 @@ export default function Hero() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center'>
+            className='bg-green-600 hover:bg-green-500 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center'
+            onClick={() => loginWithSpotify()}>
             <FaSpotify className='text-2xl' /> Connect with Spotify
           </motion.button>
         </motion.div>

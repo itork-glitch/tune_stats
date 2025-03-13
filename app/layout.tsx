@@ -1,7 +1,7 @@
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Geist } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
-import { Navbar } from '@/components/navbar';
+import NavbarLayout from '@/components/misc/navbar_disabler';
 import './globals.css';
 
 const defaultUrl = process.env.VERCEL_URL
@@ -29,11 +29,11 @@ export default function RootLayout({
       <body className='bg-background text-foreground'>
         <ThemeProvider
           attribute='class'
-          defaultTheme='dark' // temporaly - after dev "system"
+          defaultTheme='system' // temporaly - after dev "system"
           enableSystem
           disableTransitionOnChange>
-          <Navbar />
-          <main className='pt-16'>{children}</main>
+          <NavbarLayout />
+          <main>{children}</main>
         </ThemeProvider>
       </body>
     </html>
