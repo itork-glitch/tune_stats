@@ -1,7 +1,16 @@
 import React from 'react';
+import { createClient } from '@/utils/supabase/server';
 
-const page = () => {
-  return <div>page</div>;
-};
+export default async function Playground() {
+  const supabase = await createClient();
 
-export default page;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return (
+    <div>
+      <p>Zalogowany użytkownik: {session?.user.user_metadata.email}</p>
+    </div>
+  );
+}

@@ -4,8 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { FaSpotify } from 'react-icons/fa';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Session } from '@supabase/auth-helpers-nextjs';
+import { createClient, Session } from '@supabase/supabase-js';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { AvatarImage } from '@radix-ui/react-avatar';
 import { components } from '@/constants/navbar';
@@ -29,41 +28,38 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ErrorHandler from './misc/navbar_err_handling';
 
+// Globalny klient Supabase
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export function Navbar() {
-  const supabase = createClientComponentClient();
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Błąd podczas pobierania sesji:', error);
+      } else {
+        setSession(data.session);
+      }
     };
 
     getSession();
 
-    // Listen for auth changes
+    // Nasłuchujemy zmian w autoryzacji
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
+      (event, newSession) => {
+        setSession(newSession);
       }
     );
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [supabase]);
-
-  async function signInWithSpotify() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'spotify',
-    });
-  }
-
-  const loginWithSpotify = async () => {
-    signInWithSpotify();
-  };
+  }, []);
 
   return (
     <nav className='fixed top-0 left-0 right-0 bg-[hsl(0,0%,3.9%)] z-50 flex items-center justify-between px-4 py-2'>
@@ -145,7 +141,8 @@ export function Navbar() {
       </div>
       <div>
         {!session ? (
-          <Button onClick={() => loginWithSpotify()}>
+          <Button
+            onClick={() => (window.location.href = '/api/loginWithSpotify')}>
             Log with&nbsp;
             <FaSpotify className='text-2xl' />
           </Button>
@@ -167,7 +164,7 @@ export function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href={'/playground'}>Playground</Link>
+                  <Link href='/playground'>Playground</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>Billing</DropdownMenuItem>
                 <DropdownMenuSeparator />

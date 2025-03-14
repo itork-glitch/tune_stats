@@ -42,7 +42,7 @@ export const components: {
     pro: false,
   },
   {
-    title: 'Monthly Wrapped',
+    title: 'Monthly Recap',
     href: '/docs/primitives/tabs',
     description:
       'Relive your month in music—your top tracks and artists all in one place!',
