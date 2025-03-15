@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 export async function GET(req: NextRequest) {
-  const accessToken = req.cookies.get('sb-access-token')?.value;
+  const accessToken = (await cookies()).get('spotify_access_token')?.value;
 
   if (!accessToken) {
-    return NextResponse.json({ session: null }, { status: 401 });
+    return NextResponse.json({ loggedIn: false }, { status: 401 });
   }
 
-  return NextResponse.json({ session: { accessToken } });
+  return NextResponse.json({ loggedIn: true, accessToken });
 }
