@@ -12,7 +12,7 @@ export async function GET() {
     `https://accounts.spotify.com/authorize?${new URLSearchParams({
       client_id: CLIENT_ID,
       response_type: 'code',
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: 'https://www.tunestats.eu/api/auth/callback',
       scope: SCOPES,
       state: state,
       show_dialog: 'true',
