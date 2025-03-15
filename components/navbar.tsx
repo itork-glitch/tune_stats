@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { FaSpotify } from 'react-icons/fa';
-import { createClient, Session } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { AvatarImage } from '@radix-ui/react-avatar';
 import { components } from '@/constants/navbar';
@@ -28,37 +28,26 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ErrorHandler from './misc/navbar_err_handling';
 
-// Globalny klient Supabase
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export function Navbar() {
   const [session, setSession] = useState<Session | null>(null);
 
+  // Pobieramy sesję z dedykowanego endpointu API, który odczytuje sesję z ciasteczek
   useEffect(() => {
-    const getSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
+    const fetchSession = async () => {
+      try {
+        const res = await fetch('/api/session');
+        if (res.ok) {
+          const json = await res.json();
+          setSession(json.session);
+        } else {
+          setSession(null);
+        }
+      } catch (error) {
         console.error('Błąd podczas pobierania sesji:', error);
-      } else {
-        setSession(data.session);
       }
     };
 
-    getSession();
-
-    // Nasłuchujemy zmian w autoryzacji
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        setSession(newSession);
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    fetchSession();
   }, []);
 
   return (
@@ -141,6 +130,7 @@ export function Navbar() {
       </div>
       <div>
         {!session ? (
+          // Przycisk logowania tylko przekierowuje do endpointu logowania
           <Button
             onClick={() => (window.location.href = '/api/loginWithSpotify')}>
             Log with&nbsp;
@@ -170,7 +160,8 @@ export function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => supabase.auth.signOut()}>
+                <DropdownMenuItem
+                  onClick={() => (window.location.href = '/api/logout')}>
                   <span className='text-red-600'>Sign out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

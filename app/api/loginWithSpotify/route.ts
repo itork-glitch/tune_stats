@@ -1,45 +1,30 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
-  // Create a cookie store using Next.js cookies
-  const cookieStore = await cookies();
+const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID!;
+const REDIRECT_URI = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI!;
+const SCOPES = 'user-read-email user-top-read user-library-read';
 
-  // Initialize the Supabase server client with proper cookie handling
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    }
+export async function GET() {
+  const state = crypto.randomUUID(); // Unikalny state
+
+  // Ustawienie ciasteczka
+  const response = NextResponse.redirect(
+    `https://accounts.spotify.com/authorize?${new URLSearchParams({
+      client_id: CLIENT_ID,
+      response_type: 'code',
+      redirect_uri: REDIRECT_URI,
+      scope: SCOPES,
+      state: state,
+      show_dialog: 'true',
+    })}`
   );
 
-  // Begin the OAuth flow with Spotify; note the redirectTo option
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'spotify',
-    options: {
-      redirectTo: process.env.REDIRECT_URL, // Make sure this is defined in your .env file
-    },
+  response.cookies.set('spotify_auth_state', state, {
+    httpOnly: false, // Sprawdź, czy zadziała bez httpOnly
+    maxAge: 60 * 5,
+    path: '/',
+    sameSite: 'lax', // Może pomóc z problemami z przekazywaniem cookies
   });
 
-  if (error || !data.url) {
-    console.error('Error during sign-in:', error);
-    return NextResponse.json(
-      { error: error?.message || 'Błąd podczas logowania' },
-      { status: 500 }
-    );
-  }
-
-  // Redirect the user to the URL provided by Supabase (Spotify OAuth page)
-  return NextResponse.redirect(data.url);
+  return response;
 }
