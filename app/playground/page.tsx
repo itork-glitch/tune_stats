@@ -1,56 +1,47 @@
-/* import React from 'react';
-import { createClient } from '@/utils/supabase/server';
-
-export default async function Playground() {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  return (
-    <div>
-      <p>Zalogowany użytkownik: {session?.user.user_metadata.email}</p>
-    </div>
-  );
-}
- */
-
-// pages/protected.tsx
-import type { GetServerSidePropsContext, NextPage } from 'next';
 import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-interface ProtectedPageProps {
-  session: any;
-}
+export default async function PlaygroundPage() {
+  // Await cookies() so we get an object with .get and .getAll.
+  const supaCookies = await cookies();
 
-const ProtectedPage: NextPage<ProtectedPageProps> = ({ session }) => {
-  return (
-    <div>
-      <h1>Protected Content</h1>
-      <pre>{JSON.stringify(session, null, 2)}</pre>
-    </div>
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!,
+    {
+      cookieOptions: {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      },
+      cookies: supaCookies,
+    }
   );
-};
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  // Create a Supabase client that reads session info from cookies
-  const supabase = createServerClient(ctx.req, ctx.res);
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Redirect to login if there's no session
   if (!session) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+    redirect('/login');
   }
 
-  return { props: { session } };
-};
+  const { email, user_metadata } = session.user;
 
-export default ProtectedPage;
+  return (
+    <div className='p-4'>
+      <h1 className='text-2xl font-bold'>Playground Session Details</h1>
+      <div className='mt-4 space-y-2'>
+        <p>
+          <strong>Email:</strong> {email}
+        </p>
+        <p>
+          <strong>Name:</strong>
+        </p>
+        <p>
+          <strong>Full Name:</strong> {user_metadata?.full_name || 'N/A'}
+        </p>
+      </div>
+    </div>
+  );
+}
