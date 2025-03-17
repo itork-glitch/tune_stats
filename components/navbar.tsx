@@ -27,28 +27,48 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ErrorHandler from './misc/navbar_err_handling';
+import { supabase } from '@/lib/supabase';
+import { signInWithSpotify } from '@/utils/auth';
 
 export function Navbar() {
   const [session, setSession] = useState<Session | null>(null);
+  const [error, setError] = useState<string>('');
 
-  // Pobieramy sesję z dedykowanego endpointu API, który odczytuje sesję z ciasteczek
   useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await fetch('/api/session');
-        if (res.ok) {
-          const json = await res.json();
-          setSession(json.session);
-        } else {
-          setSession(null);
-        }
-      } catch (error) {
-        console.error('Błąd podczas pobierania sesji:', error);
+    // Fetch the current session from Supabase
+    const getSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error fetching session from Supabase:', error);
       }
+      setSession(session);
     };
 
-    fetchSession();
+    getSession();
+
+    // Subscribe to auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithSpotify();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
 
   return (
     <nav className='fixed top-0 left-0 right-0 bg-[hsl(0,0%,3.9%)] z-50 flex items-center justify-between px-4 py-2'>
@@ -131,11 +151,12 @@ export function Navbar() {
       <div>
         {!session ? (
           // Przycisk logowania tylko przekierowuje do endpointu logowania
-          <Button
-            onClick={() => (window.location.href = '/api/loginWithSpotify')}>
-            Log with&nbsp;
-            <FaSpotify className='text-2xl' />
-          </Button>
+          <Link href='/login'>
+            <Button onClick={handleSignIn}>
+              Log with&nbsp;
+              <FaSpotify className='text-2xl' />
+            </Button>
+          </Link>
         ) : (
           <div className='flex items-center space-x-2'>
             <DropdownMenu>
@@ -160,9 +181,10 @@ export function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => (window.location.href = '/api/logout')}>
-                  <span className='text-red-600'>Sign out</span>
+                <DropdownMenuItem>
+                  <Link href={'/signout'}>
+                    <span className='text-red-600'>Sign out</span>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
