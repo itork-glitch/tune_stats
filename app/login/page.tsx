@@ -1,29 +1,28 @@
-// app/login/page.tsx
 'use client';
 
-import { useState } from 'react';
-import { signInWithSpotify } from '@/utils/auth';
+import React from 'react';
+import { useRouter } from 'next/navigation';
+
+const spotifyID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
+const spotifyRedirect = process.env.DEV_URL + '/spotify-callback';
+const spotifyScopes = 'user-read-recently-played user-read-email';
 
 export default function LoginPage() {
-  const [error, setError] = useState<string>('');
+  const router = useRouter();
 
-  const handleSignIn = async () => {
-    try {
-      await signInWithSpotify();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const handleSpotifyLogin = () => {
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${spotifyID}&redirect_uri=${encodeURIComponent(spotifyRedirect)}&scope=${encodeURIComponent(spotifyScopes)}&response_type=token`;
+    window.location.href = authUrl;
   };
 
   return (
-    <div className='min-h-screen flex flex-col items-center justify-center'>
-      <h1 className='text-3xl mb-4'>Login</h1>
+    <div className='p-4'>
+      <h1 className='text-2xl font-bold'>Login</h1>
       <button
-        onClick={handleSignIn}
-        className='px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600'>
-        Sign in with Spotify
+        onClick={handleSpotifyLogin}
+        className='bg-green-500 text-white px-4 py-2 rounded mt-4'>
+        Login with Spotify
       </button>
-      {error && <p className='mt-4 text-red-500'>{error}</p>}
     </div>
   );
 }

@@ -12,9 +12,8 @@ export default function PlaygroundPage() {
   const [songs, setSongs] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch Supabase session on mount
   useEffect(() => {
-    const fetchSession = async () => {
+    async function fetchSession() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -24,38 +23,30 @@ export default function PlaygroundPage() {
         setSession(session);
         setLoading(false);
       }
-    };
-
+    }
     fetchSession();
   }, [router]);
 
-  // Fetch Spotify recently played songs when session is available
+  // Fetch Spotify listening history if token is available (from localStorage or user metadata)
   useEffect(() => {
-    if (!session) return;
+    const token =
+      localStorage.getItem('spotifyAccessToken') ||
+      session?.user.user_metadata.spotifyAccessToken;
+    if (!token) return;
 
-    const fetchSongs = async () => {
-      // Retrieve a valid Spotify access token
-      const spotifyAccessToken = localStorage.getItem(
-        'sb-saobywbkuqinwaenpzvl-auth-token'
-      );
-      if (!spotifyAccessToken) {
-        setError(
-          'Spotify access token not found. Please authenticate with Spotify.'
-        );
-        return;
-      }
+    async function fetchSongs() {
       try {
         const response = await fetch(
           'https://api.spotify.com/v1/me/player/recently-played',
           {
             headers: {
-              Authorization: `Bearer ${spotifyAccessToken}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
         if (!response.ok) {
-          const errorData = await response.json();
-          setError(errorData.message || 'Failed to fetch songs');
+          const errData = await response.json();
+          setError(errData.message || 'Failed to fetch songs');
           return;
         }
         const songData = await response.json();
@@ -63,42 +54,38 @@ export default function PlaygroundPage() {
       } catch (err: any) {
         setError(err.message);
       }
-    };
-
+    }
     fetchSongs();
   }, [session]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  const { email, user_metadata } = session!.user;
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className='p-4'>
       <h1 className='text-2xl font-bold'>Playground Session Details</h1>
       <div className='mt-4 space-y-2'>
         <p>
-          <strong>Email:</strong> {email}
+          <strong>Email:</strong> {session!.user.email}
         </p>
         <p>
-          <strong>Name:</strong> {user_metadata?.full_name || 'N/A'}
+          <strong>Name:</strong>{' '}
+          {session!.user.user_metadata?.full_name || 'N/A'}
         </p>
         {error && (
           <p className='text-red-500'>
             <strong>Error:</strong> {error}
           </p>
         )}
-        <div>
-          <h2 className='text-xl font-semibold mt-4'>Recently Played Songs</h2>
-          {songs.length > 0 ? (
-            songs.map((song: any) => (
+        {songs && songs.length > 0 && (
+          <div>
+            <h2 className='text-xl font-semibold mt-4'>
+              Recently Played Songs
+            </h2>
+            {songs.map((song: any) => (
               <p key={song.played_at}>{song.track.name}</p>
-            ))
-          ) : (
-            <p>No songs found.</p>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
