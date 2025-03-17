@@ -11,6 +11,7 @@ export async function signInWithSpotify(): Promise<void> {
     provider: 'spotify',
     options: {
       redirectTo: window.location.origin, // redirect back to your app after login
+      scopes: 'user-read-recently-played user-top-read', // Spotify scopes
     },
   });
   if (error) throw error;
