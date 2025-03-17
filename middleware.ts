@@ -1,13 +1,18 @@
-import { type NextRequest } from 'next/server';
-import { updateSession } from '@/utils/supabase/middleware';
+// middleware.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get('sb:token')?.value;
+
+  // Protect routes that start with /protected
+  if (request.nextUrl.pathname.startsWith('/protected') && !token) {
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    // Dopasuj wszystkie ścieżki oprócz statycznych plików, obrazków, favicon itp.
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/protected/:path*'],
 };
