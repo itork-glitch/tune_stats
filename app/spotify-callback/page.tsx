@@ -34,12 +34,12 @@ export default function SpotifyCallbackPage() {
 
       const password = id;
 
-      let { data: session, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
+      try {
+        let { data: session, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+      } catch (error) {
         const { data: signUpData, error: signUpError } =
           await supabase.auth.signUp({
             email,

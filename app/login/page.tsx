@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 
 const spotifyID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
-const spotifyRedirect = process.env.DEV_URL + '/spotify-callback';
+const spotifyRedirect = 'http://localhost:3000/spotify-callback';
 const spotifyScopes = 'user-read-recently-played user-read-email';
 
 export default function LoginPage() {

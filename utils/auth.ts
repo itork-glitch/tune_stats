@@ -10,7 +10,7 @@ export async function signInWithSpotify(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'spotify',
     options: {
-      redirectTo: window.location.origin, // redirect back to your app after login
+      redirectTo: 'http://localhost:3000/spotify-callback', // redirect back to your app after login
       scopes: 'user-read-recently-played user-top-read', // Spotify scopes
     },
   });

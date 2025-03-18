@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-export default function PlaygroundPage() {
+const Playground = () => {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,9 +29,7 @@ export default function PlaygroundPage() {
 
   // Fetch Spotify listening history if token is available (from localStorage or user metadata)
   useEffect(() => {
-    const token =
-      localStorage.getItem('spotifyAccessToken') ||
-      session?.user.user_metadata.spotifyAccessToken;
+    const token = localStorage.getItem('spotifyAccessToken');
     if (!token) return;
 
     async function fetchSongs() {
@@ -89,4 +87,6 @@ export default function PlaygroundPage() {
       </div>
     </div>
   );
-}
+};
+
+export default Playground;
