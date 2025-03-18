@@ -4,6 +4,31 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Session } from '@supabase/supabase-js';
+import { TrendingUp } from 'lucide-react';
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+const chartData = [
+  { month: 'January', desktop: 186 },
+  { month: 'February', desktop: 305 },
+  { month: 'March', desktop: 237 },
+  { month: 'April', desktop: 73 },
+  { month: 'May', desktop: 209 },
+  { month: 'June', desktop: 214 },
+];
 
 const Playground = () => {
   const router = useRouter();
@@ -11,6 +36,7 @@ const Playground = () => {
   const [loading, setLoading] = useState(true);
   const [songs, setSongs] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [playTime, setPlayTime] = useState<number>(0);
 
   useEffect(() => {
     async function fetchSession() {
@@ -35,7 +61,7 @@ const Playground = () => {
     async function fetchSongs() {
       try {
         const response = await fetch(
-          'https://api.spotify.com/v1/me/player/recently-played',
+          'https://api.spotify.com/v1/me/player/recently-played?limit=50',
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -57,6 +83,12 @@ const Playground = () => {
   }, [session]);
 
   if (loading) return <div>Loading...</div>;
+
+  console.log('songs', songs);
+
+  const totalPlaytime = songs.reduce((acc: number, song: any) => {
+    return acc + song.track.duration_ms / (60 * 1000);
+  }, 0);
 
   return (
     <div className='p-4'>
@@ -84,6 +116,8 @@ const Playground = () => {
             ))}
           </div>
         )}
+
+        <div>lenght: {totalPlaytime}</div>
       </div>
     </div>
   );
