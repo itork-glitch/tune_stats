@@ -1,6 +1,6 @@
 // utils/auth.ts
 import Cookies from 'js-cookie';
-import { supabase } from '@/utils/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { Session, AuthChangeEvent } from '@supabase/supabase-js';
 
 /**
