@@ -1,38 +1,36 @@
 // middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createMiddlewareClient } from '@supabase/ssr';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-
-  // Create the Supabase client using the URL, key, and options.
-  // In middleware, we pass the cookies from the request.
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
-    {
-      cookieOptions: {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      },
-      cookies: request.cookies,
-    }
-  );
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
 
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // For any route under /protected, if no session exists, redirect to /login.
-  if (request.nextUrl.pathname.startsWith('/protected') && !session) {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
+  // Jeśli użytkownik nie jest zalogowany i próbuje dostać się do chronionej strony
+  if (!session && !req.nextUrl.pathname.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  return response;
+  // Jeśli jest zalogowany ale brakuje danych Spotify
+  if (session && req.nextUrl.pathname !== '/callback') {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('spotify_access_token')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!userData?.spotify_access_token) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+  }
+
+  return res;
 }
 
 export const config = {
-  matcher: ['/protected/:path*'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|login|callback).*)'],
 };

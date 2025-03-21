@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 const spotifyID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
 const spotifyRedirect = 'http://localhost:3000/spotify-callback';
@@ -10,9 +11,16 @@ const spotifyScopes = 'user-read-recently-played user-read-email';
 export default function LoginPage() {
   const router = useRouter();
 
-  const handleSpotifyLogin = () => {
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${spotifyID}&redirect_uri=${encodeURIComponent(spotifyRedirect)}&scope=${encodeURIComponent(spotifyScopes)}&response_type=token`;
-    window.location.href = authUrl;
+  const handleSpotifyLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'spotify',
+      options: {
+        scopes: 'user-top-read',
+        redirectTo: `${location.origin}/callback`,
+      },
+    });
+
+    if (error) console.error(error);
   };
 
   return (

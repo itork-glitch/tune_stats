@@ -46,23 +46,28 @@ const Playground: React.FC = () => {
   const [songs, setSongs] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch session data
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchData = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      const { data: userData } = await supabase
+        .from('users')
+        .select('spotify_access_token')
+        .eq('id', session?.user.id)
+        .single();
 
-      if (!session) {
-        router.push('/login');
-      } else {
-        setSession(session);
-        setLoading(false);
-      }
+      const response = await fetch('https://api.spotify.com/v1/me/top/tracks', {
+        headers: {
+          Authorization: `Bearer ${userData?.spotify_access_token}`,
+        },
+      });
+
+      // ...obsługa danych
     };
 
-    fetchSession();
-  }, [router]);
+    fetchData();
+  }, []);
 
   // Fetch Spotify listening history if token is available
   useEffect(() => {
