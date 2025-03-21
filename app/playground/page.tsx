@@ -21,6 +21,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+
+// Dummy chart data for illustration
 const chartData = [
   { month: 'January', desktop: 186 },
   { month: 'February', desktop: 305 },
@@ -30,42 +32,44 @@ const chartData = [
   { month: 'June', desktop: 214 },
 ];
 
-const chartConfig = {
+const chartConfig: ChartConfig = {
   desktop: {
     label: 'Desktop',
     color: 'hsl(var(--chart-1))',
   },
-} satisfies ChartConfig;
+};
 
-const Playground = () => {
+const Playground: React.FC = () => {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [songs, setSongs] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [playTime, setPlayTime] = useState<number>(0);
 
+  // Fetch session data
   useEffect(() => {
-    async function fetchSession() {
+    const fetchSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+
       if (!session) {
         router.push('/login');
       } else {
         setSession(session);
         setLoading(false);
       }
-    }
+    };
+
     fetchSession();
   }, [router]);
 
-  // Fetch Spotify listening history if token is available (from localStorage or user metadata)
+  // Fetch Spotify listening history if token is available
   useEffect(() => {
     const token = localStorage.getItem('spotifyAccessToken');
     if (!token) return;
 
-    async function fetchSongs() {
+    const fetchSongs = async () => {
       try {
         const response = await fetch(
           'https://api.spotify.com/v1/me/player/recently-played?limit=50',
@@ -85,14 +89,14 @@ const Playground = () => {
       } catch (err: any) {
         setError(err.message);
       }
-    }
+    };
+
     fetchSongs();
   }, [session]);
 
   if (loading) return <div>Loading...</div>;
 
-  console.log('songs', songs);
-
+  // Calculate total playtime in minutes
   const totalPlaytime = songs.reduce((acc: number, song: any) => {
     return acc + song.track.duration_ms / (60 * 1000);
   }, 0);
@@ -102,18 +106,18 @@ const Playground = () => {
       <h1 className='text-2xl font-bold'>Playground Session Details</h1>
       <div className='mt-4 space-y-2'>
         <p>
-          <strong>Email:</strong> {session!.user.email}
+          <strong>Email:</strong> {session?.user.email}
         </p>
         <p>
           <strong>Name:</strong>{' '}
-          {session!.user.user_metadata?.full_name || 'N/A'}
+          {session?.user.user_metadata?.full_name || 'N/A'}
         </p>
         {error && (
           <p className='text-red-500'>
             <strong>Error:</strong> {error}
           </p>
         )}
-        {songs && songs.length > 0 && (
+        {songs.length > 0 && (
           <div>
             <h2 className='text-xl font-semibold mt-4'>
               Recently Played Songs
@@ -123,8 +127,9 @@ const Playground = () => {
             ))}
           </div>
         )}
-
-        <div>lenght: {totalPlaytime}</div>
+        <div>
+          <strong>Length:</strong> {totalPlaytime.toFixed(2)} minutes
+        </div>
 
         <Card>
           <CardHeader>
@@ -135,13 +140,7 @@ const Playground = () => {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig}>
-              <AreaChart
-                accessibilityLayer
-                data={chartData}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}>
+              <AreaChart data={chartData} margin={{ left: 12, right: 12 }}>
                 <CartesianGrid vertical={false} />
                 <XAxis
                   dataKey='month'
