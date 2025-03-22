@@ -25,7 +25,43 @@ export default function LoginPage() {
     return emailRegex.test(email);
   };
 
-  // Sprawdzamy czy użytkownik istnieje za pomocą API.
+  const handleSpotifyLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'spotify',
+      options: {
+        scopes: 'user-top-read',
+        redirectTo: `${location.origin}/callback`,
+      },
+    });
+    if (error) {
+      console.error('Błąd logowania przez Spotify:', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${location.origin}/callback`,
+      },
+    });
+    if (error) {
+      console.error('Błąd logowania przez Google:', error);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${location.origin}/callback`,
+      },
+    });
+    if (error) {
+      console.error('Błąd logowania przez Apple:', error);
+    }
+  };
+
   const handleEmailLogin = async () => {
     setEmailError(null);
 
@@ -46,6 +82,22 @@ export default function LoginPage() {
         console.error('Błąd podczas sprawdzania użytkownika:', result.error);
         setEmailError('Wystąpił błąd podczas sprawdzania użytkownika.');
         return;
+      }
+
+      if (result.provider !== 'email') {
+        switch (result.provider) {
+          case 'spotify':
+            handleSpotifyLogin();
+            break;
+          case 'google':
+            handleGoogleLogin();
+            break;
+          case 'apple':
+            handleAppleLogin();
+            break;
+          default:
+            break;
+        }
       }
 
       if (!result.exists) {
@@ -87,43 +139,6 @@ export default function LoginPage() {
     } catch (err) {
       console.error('Nieoczekiwany błąd:', err);
       setPasswordError('Wystąpił nieoczekiwany błąd.');
-    }
-  };
-
-  const handleSpotifyLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'spotify',
-      options: {
-        scopes: 'user-top-read',
-        redirectTo: `${location.origin}/callback`,
-      },
-    });
-    if (error) {
-      console.error('Błąd logowania przez Spotify:', error);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${location.origin}/callback`,
-      },
-    });
-    if (error) {
-      console.error('Błąd logowania przez Google:', error);
-    }
-  };
-
-  const handleAppleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${location.origin}/callback`,
-      },
-    });
-    if (error) {
-      console.error('Błąd logowania przez Apple:', error);
     }
   };
 

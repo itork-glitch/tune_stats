@@ -19,7 +19,9 @@ export async function POST(request: Request) {
     }
 
     const user = data?.users.find((user: any) => user.email === email);
-    return NextResponse.json({ exists: !!user });
+    const provider = user?.app_metadata.provider || 'email';
+
+    return NextResponse.json({ exists: !!user, provider: `${provider}` });
   } catch (error) {
     console.error('API critical error:', error);
     return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
