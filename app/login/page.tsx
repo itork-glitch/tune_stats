@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Quicksand } from 'next/font/google';
 import Link from 'next/link';
 import { FaSpotify, FaApple } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
@@ -30,7 +29,6 @@ export default function LoginPage() {
       provider: 'spotify',
       options: {
         scopes: 'user-top-read user-read-recently-played',
-        //redirectTo: `${location.origin}/callback`,
       },
     });
 
@@ -42,9 +40,6 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${location.origin}/callback`,
-      },
     });
     if (error) {
       console.error('Błąd logowania przez Google:', error);
@@ -54,9 +49,6 @@ export default function LoginPage() {
   const handleAppleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'apple',
-      options: {
-        redirectTo: `${location.origin}/callback`,
-      },
     });
     if (error) {
       console.error('Błąd logowania przez Apple:', error);
