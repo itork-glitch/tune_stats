@@ -13,10 +13,10 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Jeśli użytkownik nie jest zalogowany, przekieruj do /login
+  /*   // Jeśli użytkownik nie jest zalogowany, przekieruj do /login
   if (!session && !req.nextUrl.pathname.startsWith('/login')) {
     return NextResponse.redirect(new URL('/login', req.url));
-  }
+  } */
 
   // Dla stron chronionych (poza /login i /callback), sprawdzamy czy w bazie są dane Spotify
   if (
@@ -37,8 +37,8 @@ export async function middleware(req: NextRequest) {
   return res;
 }
 
-export const config = {
+/* export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|login|callback|public|$).*)',
+    '/((?!api|.next/static|.next/image|favicon.ico|login|callback|public/iphone.glb|$).*)',
   ],
-};
+}; */

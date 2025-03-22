@@ -28,11 +28,24 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ErrorHandler from './misc/navbar_err_handling';
 import { supabase } from '@/lib/supabase';
-import { signInWithSpotify } from '@/utils/auth';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 
 export function Navbar() {
   const [session, setSession] = useState<Session | null>(null);
   const [error, setError] = useState<string>('');
+
+  const router = useRouter();
 
   useEffect(() => {
     // Fetch the current session from Supabase
@@ -61,14 +74,6 @@ export function Navbar() {
       authListener?.subscription.unsubscribe();
     };
   }, []);
-
-  const handleSignIn = async () => {
-    try {
-      await signInWithSpotify();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
 
   return (
     <nav className='fixed top-0 left-0 right-0 bg-[hsl(0,0%,3.9%)] z-50 flex items-center justify-between px-4 py-2'>
@@ -152,7 +157,7 @@ export function Navbar() {
         {!session ? (
           // Przycisk logowania tylko przekierowuje do endpointu logowania
           <Link href='/login'>
-            <Button onClick={handleSignIn}>
+            <Button onClick={() => router.push('/login')}>
               Log with&nbsp;
               <FaSpotify className='text-2xl' />
             </Button>
@@ -182,9 +187,34 @@ export function Navbar() {
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Link href={'/signout'}>
-                    <span className='text-red-600'>Sign out</span>
-                  </Link>
+                  <AlertDialog>
+                    {/* 1. Trigger wywołujący AlertDialog */}
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem>
+                        {/* W tym miejscu może być też <button> lub sam tekst */}
+                        <span className='text-red-600'>Sign out</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+
+                    {/* 2. Treść wyświetlana w okienku dialogowym */}
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Sign out?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action will sign you out of your account. Are you
+                          sure you want to continue?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        {/* 3. Przyciski: Cancel i Action */}
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => supabase.auth.signOut()}>
+                          Continue
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

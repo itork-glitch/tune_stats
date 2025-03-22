@@ -56,6 +56,7 @@ export const MiniSpotifyCard = ({
           alt={`${title} Album Cover`}
           width={144}
           height={144}
+          priority
         />
       </div>
       <div>
