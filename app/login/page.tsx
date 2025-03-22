@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/input';
@@ -12,14 +12,83 @@ import { FcGoogle } from 'react-icons/fc';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
-const quicksand = Quicksand({
-  weight: '700',
-  subsets: ['latin'],
-  display: 'swap',
-});
-
 export default function LoginPage() {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showPasswordInput, setShowPasswordInput] = useState<boolean>(false);
   const router = useRouter();
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Sprawdzamy czy użytkownik istnieje za pomocą API.
+  const handleEmailLogin = async () => {
+    setEmailError(null);
+
+    if (!email || !isValidEmail(email)) {
+      setEmailError('Podaj poprawny adres email.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        console.error('Błąd podczas sprawdzania użytkownika:', result.error);
+        setEmailError('Wystąpił błąd podczas sprawdzania użytkownika.');
+        return;
+      }
+
+      if (!result.exists) {
+        // Użytkownik nie istnieje, przekierowujemy do rejestracji.
+        router.push('/signup');
+        return;
+      }
+
+      // Użytkownik istnieje – wyświetlamy pole na hasło.
+      setShowPasswordInput(true);
+    } catch (err) {
+      console.error('Nieoczekiwany błąd:', err);
+      setEmailError('Wystąpił nieoczekiwany błąd.');
+    }
+  };
+
+  const handlePasswordLogin = async () => {
+    setPasswordError(null);
+
+    if (!password) {
+      setPasswordError('Podaj hasło.');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('Błąd logowania:', error.message);
+        setPasswordError('Błędne hasło lub problem z logowaniem.');
+        return;
+      }
+
+      console.log('Zalogowano użytkownika:', data);
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Nieoczekiwany błąd:', err);
+      setPasswordError('Wystąpił nieoczekiwany błąd.');
+    }
+  };
 
   const handleSpotifyLogin = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -31,7 +100,30 @@ export default function LoginPage() {
     });
     if (error) {
       console.error('Błąd logowania przez Spotify:', error);
-      // Możesz wyświetlić komunikat użytkownikowi
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${location.origin}/callback`,
+      },
+    });
+    if (error) {
+      console.error('Błąd logowania przez Google:', error);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${location.origin}/callback`,
+      },
+    });
+    if (error) {
+      console.error('Błąd logowania przez Apple:', error);
     }
   };
 
@@ -40,25 +132,59 @@ export default function LoginPage() {
       <nav className='py-2 px-4'>
         <h1 className='text-3xl text-white font-sans flex items-center gap-2'>
           <Image src='/tune_stats_logo.png' alt='' height={40} width={40} />
-          <span className='font-bold'>TuneStats</span>{' '}
+          <span className='font-bold'>TuneStats</span>
         </h1>
       </nav>
 
       <section className='flex-grow flex flex-col items-center justify-center'>
         <div className='w-[30vw] flex flex-col justify-center items-center gap-4'>
           <span className='font-semibold text-3xl pb-2'>Welcome back</span>
+
+          {(emailError || passwordError) && (
+            <div className='w-[60%] text-sm text-red-500 text-left -mb-2 pl-4'>
+              Invalid email or password.
+            </div>
+          )}
           <Input
             type='email'
             placeholder='Email'
-            className=' rounded-full w-[60%]'
+            className={`rounded-full w-[60%] ${emailError ? 'border border-red-500' : ''}`}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError(null);
+            }}
           />
-          <Button className=' rounded-full w-[60%]'>Continue</Button>
+          {showPasswordInput && (
+            <>
+              <Input
+                type='password'
+                placeholder='Password'
+                className={`rounded-full w-[60%] ${passwordError ? 'border border-red-500' : ''}`}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError(null);
+                }}
+              />
+            </>
+          )}
+          {showPasswordInput ? (
+            <Button
+              className='rounded-full w-[60%]'
+              onClick={handlePasswordLogin}>
+              Log in
+            </Button>
+          ) : (
+            <Button className='rounded-full w-[60%]' onClick={handleEmailLogin}>
+              Continue
+            </Button>
+          )}
+
           <div>
             Don't have an account?{' '}
-            <Link
-              href={'/create-account'}
-              className='text-sky-500 hover:underline'>
-              Sign Up
+            <Link href={'/signup'} className='text-sky-500 hover:underline'>
+              Sign up
             </Link>
           </div>
           <Separator className='w-[60%] text-gray-400' />
@@ -74,16 +200,14 @@ export default function LoginPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className='bg-white hover:bg-gray-300 text-black py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center row-start-2'
-              /* onClick={} */
-            >
+              onClick={handleGoogleLogin}>
               <FcGoogle className='text-2xl' />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className='bg-black text-white py-2 px-6 rounded-lg font-semibold transition-colors flex gap-2 justify-center row-start-2'
-              /* onClick={} */
-            >
+              onClick={handleAppleLogin}>
               <FaApple className='text-2xl' />
             </motion.button>
           </div>
@@ -96,7 +220,7 @@ export default function LoginPage() {
             </Link>
             <Separator orientation='vertical' />
             <Link
-              href={'docs/privicy'}
+              href={'/docs/privicy'}
               className='text-sm underline hover:text-white'>
               Privacy Policy
             </Link>
