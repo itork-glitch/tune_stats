@@ -29,10 +29,11 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'spotify',
       options: {
-        scopes: 'user-top-read',
-        redirectTo: `${location.origin}/callback`,
+        scopes: 'user-top-read user-read-recently-played',
+        //redirectTo: `${location.origin}/callback`,
       },
     });
+
     if (error) {
       console.error('Błąd logowania przez Spotify:', error);
     }

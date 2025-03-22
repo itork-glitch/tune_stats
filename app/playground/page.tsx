@@ -14,38 +14,40 @@ export default function Playground() {
       const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
       if (sessionError || !sessionData.session) {
-        console.error('Błąd sesji:', sessionError);
+        console.error('Session error:', sessionError);
         router.replace('/login');
         return;
       }
-      const userId = sessionData.session.user.id;
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('spotify_access_token')
-        .eq('id', userId)
-        .single();
-      if (userError) {
-        console.error('Błąd pobierania danych użytkownika:', userError);
-        setError('Błąd pobierania danych użytkownika');
-        return;
-      }
+
+      const tokenString = localStorage.getItem(
+        'sb-saobywbkuqinwaenpzvl-auth-token'
+      );
+
+      if (!tokenString) return;
+
+      const token = JSON.parse(tokenString);
+
+      console.log(token);
+
       try {
         const response = await fetch(
           'https://api.spotify.com/v1/me/top/tracks',
           {
             headers: {
-              Authorization: `Bearer ${userData.spotify_access_token}`,
+              Authorization: `Bearer ${token.provider_token}`,
             },
           }
         );
         if (!response.ok) {
-          throw new Error(`Błąd Spotify API: ${response.status}`);
+          throw new Error(
+            `Błąd Spotify API: ${response.status + response.statusText}`
+          );
         }
         const tracks = await response.json();
         setSongs(tracks.items || []);
       } catch (err) {
-        console.error('Błąd pobierania utworów:', err);
-        setError('Błąd pobierania utworów');
+        console.error('Err', err);
+        setError('Song parsing problem');
       }
     };
 
