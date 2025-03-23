@@ -19,6 +19,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+
 const chartData = [
   { month: 'January', desktop: 186 },
   { month: 'February', desktop: 305 },
@@ -27,6 +28,7 @@ const chartData = [
   { month: 'May', desktop: 209 },
   { month: 'June', desktop: 214 },
 ];
+
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -52,10 +54,38 @@ export default function Playground() {
       const tokenString = localStorage.getItem(
         'sb-saobywbkuqinwaenpzvl-auth-token'
       );
-
       if (!tokenString) return;
 
-      const token = JSON.parse(tokenString);
+      let token = JSON.parse(tokenString);
+
+      if (
+        token.provider_token_expires_at &&
+        token.provider_token_expires_at < Date.now() / 1000
+      ) {
+        try {
+          const refreshResponse = await fetch('/api/spotify/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: token.refresh_token }),
+          });
+          if (!refreshResponse.ok) {
+            throw new Error(
+              `Błąd odświeżania tokena: ${refreshResponse.statusText}`
+            );
+          }
+          const newTokenData = await refreshResponse.json();
+          token.provider_token = newTokenData.access_token;
+          token.provider_token_expires_at = newTokenData.expires_at;
+          localStorage.setItem(
+            'sb-saobywbkuqinwaenpzvl-auth-token',
+            JSON.stringify(token)
+          );
+        } catch (err) {
+          console.error('Błąd przy odświeżaniu tokena Spotify', err);
+          setError('Wystąpił problem z odświeżeniem tokena.');
+          return;
+        }
+      }
 
       try {
         const response = await fetch(
@@ -68,14 +98,14 @@ export default function Playground() {
         );
         if (!response.ok) {
           throw new Error(
-            `Spotify API error: ${response.status + response.statusText}`
+            `Spotify API error: ${response.status} ${response.statusText}`
           );
         }
         const tracks = await response.json();
         setSongs(tracks.items || []);
       } catch (err) {
-        console.error('Err', err);
-        setError('Song parsing problem');
+        console.error('Błąd podczas pobierania utworów', err);
+        setError('Problem z pobraniem utworów.');
       }
     };
 
