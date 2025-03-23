@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { TrendingUp } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
 import {
   Card,
   CardContent,
@@ -14,30 +14,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-
-const chartData = [
-  { month: 'January', desktop: 186 },
-  { month: 'February', desktop: 305 },
-  { month: 'March', desktop: 237 },
-  { month: 'April', desktop: 73 },
-  { month: 'May', desktop: 209 },
-  { month: 'June', desktop: 214 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: '#1bb300',
-  },
-} satisfies ChartConfig;
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Playground() {
   const [songs, setSongs] = useState<any[]>([]);
+  const [artists, setArtists] = useState<any[]>([]);
+  const [topSongs, setTopSongs] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -46,7 +32,6 @@ export default function Playground() {
       const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
       if (sessionError || !sessionData.session) {
-        console.error('Session error:', sessionError);
         router.replace('/login');
         return;
       }
@@ -55,124 +40,108 @@ export default function Playground() {
         'sb-saobywbkuqinwaenpzvl-auth-token'
       );
       if (!tokenString) return;
-
       let token = JSON.parse(tokenString);
-
-      if (
-        token.provider_token_expires_at &&
-        token.provider_token_expires_at < Date.now() / 1000
-      ) {
-        try {
-          const refreshResponse = await fetch('/api/spotify/refresh', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refresh_token: token.refresh_token }),
-          });
-          if (!refreshResponse.ok) {
-            throw new Error(
-              `Błąd odświeżania tokena: ${refreshResponse.statusText}`
-            );
-          }
-          const newTokenData = await refreshResponse.json();
-          token.provider_token = newTokenData.access_token;
-          token.provider_token_expires_at = newTokenData.expires_at;
-          localStorage.setItem(
-            'sb-saobywbkuqinwaenpzvl-auth-token',
-            JSON.stringify(token)
-          );
-        } catch (err) {
-          console.error('Błąd przy odświeżaniu tokena Spotify', err);
-          setError('Wystąpił problem z odświeżeniem tokena.');
-          return;
-        }
-      }
 
       try {
         const response = await fetch(
-          'https://api.spotify.com/v1/me/player/recently-played?limit=50',
+          'https://api.spotify.com/v1/me/top/artists?limit=50',
           {
-            headers: {
-              Authorization: `Bearer ${token.provider_token}`,
-            },
+            headers: { Authorization: `Bearer ${token.provider_token}` },
           }
         );
-        if (!response.ok) {
-          throw new Error(
-            `Spotify API error: ${response.status} ${response.statusText}`
-          );
-        }
-        const tracks = await response.json();
-        setSongs(tracks.items || []);
+        if (!response.ok) throw new Error('Spotify API error');
+        const artists = await response.json();
+        setArtists(artists.items || []);
       } catch (err) {
-        console.error('Błąd podczas pobierania utworów', err);
-        setError('Problem z pobraniem utworów.');
+        setError('Problem z pobraniem artystów.');
       }
     };
-
     fetchData();
   }, [router]);
 
+  const getFavouriteGenres = (artists: any[]) => {
+    const allGenres: string[] = artists.flatMap((artist) => artist.genres);
+
+    const genreCounts: Record<string, number> = allGenres.reduce(
+      (acc, genre) => {
+        acc[genre] = (acc[genre] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+
+    return Object.entries(genreCounts)
+      .sort(([, countA], [, countB]) => countB - countA)
+      .slice(0, 6)
+      .map(([genre, count]) => ({ genre, count }));
+  };
+
   return (
-    <div>
-      <h1>Top Tracks</h1>
-      {error && <div>{error}</div>}
-      <ul>
-        {songs.map((song, idx) => (
-          <li key={idx}>{song.track.name}</li>
-        ))}
-      </ul>
-      <Card>
-        <CardHeader>
-          <CardTitle>Listening time</CardTitle>
-          <CardDescription>Showing your total streamed time</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer
-            config={chartConfig}
-            className='max-h-[20vh] min-h-[20vh] '>
-            <AreaChart
-              accessibilityLayer
-              data={chartData}
-              margin={{
-                left: 12,
-                right: 12,
-              }}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey='month'
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator='line' />}
-              />
-              <Area
-                dataKey='desktop'
-                type='natural'
-                fill='var(--color-desktop)'
-                fillOpacity={0.4}
-                stroke='var(--color-desktop)'
-              />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent>
-        <CardFooter>
-          <div className='flex w-full items-start gap-2 text-sm'>
-            <div className='grid gap-2'>
-              <div className='flex items-center gap-2 font-medium leading-none'>
-                Trending up by 5.2% this month{' '}
-                <TrendingUp className='h-4 w-4' />
-              </div>
-              <div className='flex items-center gap-2 leading-none text-muted-foreground'>
-                January - June 2024
-              </div>
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
+    <div className='container mx-auto p-6'>
+      <h1 className='text-3xl font-bold text-center mb-6'>
+        Your Spotify Stats
+      </h1>
+      {error && <div className='text-red-500 text-center'>{error}</div>}
+
+      <div className='grid md:grid-cols-2 gap-6 max-w-max'>
+        <Card className='shadow-lg max-h-[350px] max-w-[500px]'>
+          <CardHeader className='text-center'>
+            <CardTitle>Top 6 Genres</CardTitle>
+            <CardDescription>
+              Most listened genres in the last 6 months
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                count: { label: 'Genres', color: 'hsl(var(--chart-1))' },
+              }}
+              className='mx-auto aspect-2/1 max-h-[180px]'>
+              <RadarChart
+                width={200}
+                height={200}
+                data={getFavouriteGenres(artists)}>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent />}
+                />
+                <PolarAngleAxis dataKey='genre' />
+                <PolarGrid />
+                <Radar dataKey='count' fill='#4F46E5' fillOpacity={0.6} />
+              </RadarChart>
+            </ChartContainer>
+          </CardContent>
+          <CardFooter className='text-center'>
+            <span className='text-green-500 font-semibold'>
+              Trending up by 5.2% this month
+            </span>
+            <TrendingUp className='inline-block ml-2 h-4 w-4' />
+          </CardFooter>
+        </Card>
+
+        <Card className='shadow-lg max-h-[350px] max-w-[500px]'>
+          <CardHeader className='text-center'>
+            <CardTitle>Top Artists</CardTitle>
+            <CardDescription>Your most listened artists</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className='space-y-2'>
+              {artists.slice(0, 5).map((artist, idx) => (
+                <li key={idx} className='flex items-center gap-2'>
+                  <Avatar>
+                    <AvatarImage
+                      src={artist.images[0]?.url}
+                      alt={artist.name}
+                    />
+                    <AvatarFallback>{artist.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <span className='font-medium text-md'>{artist.name}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
