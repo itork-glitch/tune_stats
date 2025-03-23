@@ -21,14 +21,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Playground() {
-  const [songs, setSongs] = useState<any[]>([]);
+  const [tracks, setTracks] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
-  const [topSongs, setTopSongs] = useState<any[]>([]);
+  const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchToken = async () => {
       const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
       if (sessionError || !sessionData.session) {
@@ -39,25 +39,60 @@ export default function Playground() {
       const tokenString = localStorage.getItem(
         'sb-saobywbkuqinwaenpzvl-auth-token'
       );
-      if (!tokenString) return;
-      let token = JSON.parse(tokenString);
 
+      if (!tokenString) {
+        setError("Token didn't exist in localstorage");
+        return;
+      }
+
+      const parsedToken = JSON.parse(tokenString);
+      setToken(parsedToken.provider_token);
+    };
+    fetchToken();
+  }, [router]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchArtists = async () => {
       try {
         const response = await fetch(
           'https://api.spotify.com/v1/me/top/artists?limit=50',
           {
-            headers: { Authorization: `Bearer ${token.provider_token}` },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
+
         if (!response.ok) throw new Error('Spotify API error');
         const artists = await response.json();
         setArtists(artists.items || []);
       } catch (err) {
-        setError('Problem z pobraniem artystów.');
+        console.error('Err', err);
+        setError('Data err');
       }
     };
-    fetchData();
-  }, [router]);
+
+    const fetchTracks = async () => {
+      try {
+        const responce = await fetch(
+          'https://api.spotify.com/v1/me/top/tracks?limit=50',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (!responce.ok) throw new Error('Spotify API error');
+        const tracks = await responce.json();
+        setTracks(tracks.items || []);
+      } catch (err) {
+        console.error('Err:', err);
+        setError('Data err');
+      }
+    };
+
+    fetchArtists();
+    fetchTracks();
+  }, [token]);
 
   const getFavouriteGenres = (artists: any[]) => {
     const allGenres: string[] = artists.flatMap((artist) => artist.genres);
@@ -84,6 +119,7 @@ export default function Playground() {
       {error && <div className='text-red-500 text-center'>{error}</div>}
 
       <div className='grid md:grid-cols-2 gap-6 max-w-max'>
+        {/* Top Genres */}
         <Card className='shadow-lg max-h-[350px] max-w-[500px]'>
           <CardHeader className='text-center'>
             <CardTitle>Top 6 Genres</CardTitle>
@@ -94,7 +130,7 @@ export default function Playground() {
           <CardContent>
             <ChartContainer
               config={{
-                count: { label: 'Genres', color: 'hsl(var(--chart-1))' },
+                count: { label: 'Genres', color: 'hsl(139 65% 20%)' },
               }}
               className='mx-auto aspect-2/1 max-h-[180px]'>
               <RadarChart
@@ -107,7 +143,11 @@ export default function Playground() {
                 />
                 <PolarAngleAxis dataKey='genre' />
                 <PolarGrid />
-                <Radar dataKey='count' fill='#4F46E5' fillOpacity={0.6} />
+                <Radar
+                  dataKey='count'
+                  fill='hsl(139 65% 20%)'
+                  fillOpacity={0.6}
+                />
               </RadarChart>
             </ChartContainer>
           </CardContent>
@@ -119,6 +159,7 @@ export default function Playground() {
           </CardFooter>
         </Card>
 
+        {/* Top artists */}
         <Card className='shadow-lg max-h-[350px] max-w-[500px]'>
           <CardHeader className='text-center'>
             <CardTitle>Top Artists</CardTitle>
@@ -130,12 +171,39 @@ export default function Playground() {
                 <li key={idx} className='flex items-center gap-2'>
                   <Avatar>
                     <AvatarImage
-                      src={artist.images[0]?.url}
+                      src={artist.images?.[0]?.url || '/placeholder.jpg'} // Jeśli brak obrazu, użyj placeholdera
                       alt={artist.name}
                     />
-                    <AvatarFallback>{artist.name[0]}</AvatarFallback>
+                    <AvatarFallback>{artist.name?.[0] || '?'}</AvatarFallback>
                   </Avatar>
-                  <span className='font-medium text-md'>{artist.name}</span>
+                  <span className='font-medium text-md'>
+                    {artist.name || 'Unknown Artist'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card className='shadow-lg max-h-[350px] max-w-[500px]'>
+          <CardHeader className='text-center'>
+            <CardTitle>Top Songs</CardTitle>
+            <CardDescription>Your most listened Songs</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className='space-y-2'>
+              {tracks.slice(0, 5).map((track, idx) => (
+                <li key={idx} className='flex items-center gap-2'>
+                  <Avatar>
+                    <AvatarImage
+                      src={track.album?.images?.[0]?.url || '/placeholder.jpg'}
+                      alt={track.name}
+                    />
+                    <AvatarFallback>{track.name?.[0] || '?'}</AvatarFallback>
+                  </Avatar>
+                  <span className='font-medium text-md'>
+                    {track.name || 'Unknown Track'}
+                  </span>
                 </li>
               ))}
             </ul>
