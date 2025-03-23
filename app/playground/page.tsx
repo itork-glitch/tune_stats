@@ -25,6 +25,7 @@ export default function Playground() {
   const [artists, setArtists] = useState<any[]>([]);
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function Playground() {
 
       if (!tokenString) {
         setError("Token didn't exist in localstorage");
+        setLoading(false);
         return;
       }
 
@@ -54,44 +56,36 @@ export default function Playground() {
   useEffect(() => {
     if (!token) return;
 
-    const fetchArtists = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(
-          'https://api.spotify.com/v1/me/top/artists?limit=50',
-          {
+        const [artistsRes, tracksRes] = await Promise.all([
+          fetch('https://api.spotify.com/v1/me/top/artists?limit=50', {
             headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (!response.ok) throw new Error('Spotify API error');
-        const artists = await response.json();
-        setArtists(artists.items || []);
-      } catch (err) {
-        console.error('Err', err);
-        setError('Data err');
-      }
-    };
-
-    const fetchTracks = async () => {
-      try {
-        const responce = await fetch(
-          'https://api.spotify.com/v1/me/top/tracks?limit=50',
-          {
+          }),
+          fetch('https://api.spotify.com/v1/me/top/tracks?limit=50', {
             headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+          }),
+        ]);
 
-        if (!responce.ok) throw new Error('Spotify API error');
-        const tracks = await responce.json();
-        setTracks(tracks.items || []);
+        if (!artistsRes.ok || !tracksRes.ok)
+          throw new Error('Spotify API error');
+
+        const [artistData, tracksData] = await Promise.all([
+          artistsRes.json(),
+          tracksRes.json(),
+        ]);
+
+        setArtists(artistData.items || []);
+        setTracks(tracksData.items || []);
       } catch (err) {
         console.error('Err:', err);
         setError('Data err');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchArtists();
-    fetchTracks();
+    fetchData();
   }, [token]);
 
   const getFavouriteGenres = (artists: any[]) => {
@@ -110,6 +104,14 @@ export default function Playground() {
       .slice(0, 6)
       .map(([genre, count]) => ({ genre, count }));
   };
+
+  if (loading) {
+    return (
+      <div className='flex justify-center items-center min-h-screen'>
+        <p className='text-2xl font-bold'>Ładowanie danych...</p>
+      </div>
+    );
+  }
 
   return (
     <div className='container mx-auto p-6'>
