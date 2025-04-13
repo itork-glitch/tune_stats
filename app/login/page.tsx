@@ -28,7 +28,8 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'spotify',
       options: {
-        scopes: 'user-top-read user-read-recently-played',
+        scopes:
+          'user-top-read user-read-recently-played playlist-read-private playlist-read-collaborative',
       },
     });
 

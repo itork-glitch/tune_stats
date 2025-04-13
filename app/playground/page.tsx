@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { TrendingUp } from 'lucide-react';
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Card,
   CardContent,
@@ -18,7 +19,17 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Link from 'next/link';
+
+interface AudioFeature {
+  danceability: number;
+}
+
+interface userData {
+  email: string;
+  auth_id: string;
+  refresh_token: string;
+}
 
 export default function Playground() {
   const [tracks, setTracks] = useState<any[]>([]);
@@ -30,6 +41,7 @@ export default function Playground() {
 
   useEffect(() => {
     const fetchToken = async () => {
+      // 1. Check for a valid session
       const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
       if (sessionError || !sessionData.session) {
@@ -37,6 +49,7 @@ export default function Playground() {
         return;
       }
 
+      // 2. Retrieve and parse the token from localStorage
       const tokenString = localStorage.getItem(
         'sb-saobywbkuqinwaenpzvl-auth-token'
       );
@@ -46,10 +59,82 @@ export default function Playground() {
         setLoading(false);
         return;
       }
-
       const parsedToken = JSON.parse(tokenString);
-      setToken(parsedToken.provider_token);
+
+      // Ensure we have a user email or id
+      if (!parsedToken.user.email && !parsedToken.user.id) return;
+
+      // 3. Query the users table for an existing user with the given email
+      let { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', parsedToken.user.email)
+        .maybeSingle();
+
+      if (error) throw new Error('Database error. Check db logs for details.');
+
+      // 4. If user doesn't exist, insert a new record
+      if (!user) {
+        const userData = {
+          email: parsedToken.user.email,
+          auth_id: parsedToken.user.id,
+          refresh_token: parsedToken.provider_refresh, // Spotify refresh token
+        };
+
+        const { data: newUser, error: newUserError } = await supabase
+          .from('users')
+          .insert(userData)
+          .select()
+          .maybeSingle();
+
+        if (newUserError) throw new Error('Db error: ' + newUserError.message);
+        user = newUser;
+      }
+
+      // 5. If the user's record is missing a refresh token, update it
+      if (!user.refresh_token) {
+        const { data: updatedUser, error: updateError } = await supabase
+          .from('users')
+          .update({ refresh_token: parsedToken.provider_refresh })
+          .eq('email', parsedToken.user.email)
+          .maybeSingle();
+        if (updateError)
+          throw new Error(
+            'Error updating user refresh token: ' + updateError.message
+          );
+        user = updatedUser;
+      }
+
+      // 6. Function to refresh the Spotify token using your API endpoint
+      const refreshSpotifyToken = async () => {
+        try {
+          const res = await fetch('/api/spotify-refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              refresh_token: parsedToken.provider_refresh,
+            }),
+          });
+          const refreshData = await res.json();
+          if (refreshData.access_token) {
+            // Optionally, update localStorage with the new token data here
+            return refreshData.access_token;
+          } else {
+            console.error('Error refreshing Spotify token:', refreshData);
+            return parsedToken.provider_token; // Fallback to the old token
+          }
+        } catch (err) {
+          console.error('Error calling Spotify refresh endpoint:', err);
+          return parsedToken.provider_token;
+        }
+      };
+
+      // 7. Refresh the Spotify access token and update state
+      const newSpotifyToken = await refreshSpotifyToken();
+      setToken(newSpotifyToken);
+      setLoading(false);
     };
+
     fetchToken();
   }, [router]);
 
@@ -88,6 +173,45 @@ export default function Playground() {
     fetchData();
   }, [token]);
 
+  useEffect(() => {
+    const trackDanceable = async () => {
+      if (tracks.length === 0 || !token) return;
+
+      const trackIds = tracks
+        .slice(0, 2)
+        .map((track) => track.id)
+        .join(',');
+
+      const response = await fetch(
+        `https://api.spotify.com/v1/audio-features?ids=${trackIds}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Spotify API error', response.statusText);
+        return;
+      }
+
+      const data = await response.json();
+
+      const danceabilities = data.audio_features.map(
+        (feature: AudioFeature) => feature.danceability
+      );
+
+      const sum = danceabilities.reduce(
+        (acc: number, val: number) => acc + val,
+        0
+      );
+      const averageDanceability = (sum / danceabilities.length) * 100;
+
+      console.log('Average Danceability (%):', averageDanceability);
+    };
+
+    trackDanceable();
+  }, [tracks, token]);
+
   const getFavouriteGenres = (artists: any[]) => {
     const allGenres: string[] = artists.flatMap((artist) => artist.genres);
 
@@ -99,10 +223,17 @@ export default function Playground() {
       {} as Record<string, number>
     );
 
-    return Object.entries(genreCounts)
+    const sortedGenres = Object.entries(genreCounts)
       .sort(([, countA], [, countB]) => countB - countA)
-      .slice(0, 6)
-      .map(([genre, count]) => ({ genre, count }));
+      .slice(0, 6);
+
+    const total = sortedGenres.reduce((sum, [, count]) => sum + count, 0); // Obliczamy sumę
+
+    return sortedGenres.map(([genre, count]) => ({
+      genre,
+      count: count, // Oryginalna wartość
+      percent: ((count / total) * 100).toFixed(1), // Obliczamy procenty
+    }));
   };
 
   if (loading) {
@@ -120,7 +251,13 @@ export default function Playground() {
       </h1>
       {error && <div className='text-red-500 text-center'>{error}</div>}
 
-      <div className='grid md:grid-cols-2 gap-6 max-w-max'>
+      <div className='grid grid-cols-4 grid-rows-1 gap-3 max-w-max'></div>
+
+      <div>
+        Get awesome AI recomendation.{' '}
+        <Link href={'/recomendation'}>Click here</Link>
+      </div>
+      <div className='grid grid-cols-3 grid-rows-1 gap-6 max-w-max'>
         {/* Top Genres */}
         <Card className='shadow-lg max-h-[350px] max-w-[500px]'>
           <CardHeader className='text-center'>
@@ -139,14 +276,11 @@ export default function Playground() {
                 width={200}
                 height={200}
                 data={getFavouriteGenres(artists)}>
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent />}
-                />
+                <ChartTooltip cursor={true} content={<ChartTooltipContent />} />
                 <PolarAngleAxis dataKey='genre' />
                 <PolarGrid />
                 <Radar
-                  dataKey='count'
+                  dataKey='percent'
                   fill='hsl(139 65% 20%)'
                   fillOpacity={0.6}
                 />
