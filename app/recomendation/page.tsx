@@ -12,6 +12,17 @@ import {
   SpotifyTrack,
   TracksArray,
 } from '@/types/recomendations';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { Calendar, Home, Inbox, Search, Settings } from 'lucide-react';
 
 export default function Page() {
   const [token, setToken] = useState<string | null>(null);
@@ -105,7 +116,7 @@ export default function Page() {
     } else {
       numberToPick = 20;
     }
-   
+
     const shuffled = [...tracks];
 
     // Fisher–Yates shuffle
@@ -201,7 +212,9 @@ export default function Page() {
     );
   }
 
-  return (
+  return <div>kill me</div>;
+
+  /* return (
     <div className='bg-neutral-900 min-h-screen text-white flex flex-col items-center'>
       <header className='w-full flex items-center justify-between px-4 py-2 bg-neutral-900 border-b border-neutral-800'>
         <div className='text-xl font-bold'>TuneStats</div>
@@ -210,9 +223,8 @@ export default function Page() {
         </div>
       </header>
 
-      {/* Główna sekcja */}
+      
       <main className='flex-grow flex flex-col items-center justify-center px-4'>
-        {/* Nagłówek w stylu ChatGPT */}
         <h1 className='text-2xl md:text-3xl font-semibold mb-4'>
           Choose your playlists
         </h1>
@@ -220,7 +232,6 @@ export default function Page() {
           Pick your favorites from the carousel below
         </p>
 
-        {/* Karuzela (ScrollArea) */}
         <ScrollArea className='relative w-full max-w-3xl overflow-hidden rounded-lg border border-neutral-800'>
           <div className='flex space-x-4 p-4'>
             {playlists.map((playlist) => {
@@ -246,7 +257,7 @@ export default function Page() {
                       onDragStart={(e) => e.preventDefault()}
                     />
                   </div>
-                  {/* Checkbox – czysto wizualny */}
+
                   <div className='absolute top-2 right-2'>
                     <Checkbox
                       checked={isSelected}
@@ -264,7 +275,6 @@ export default function Page() {
           <ScrollBar orientation='horizontal' />
         </ScrollArea>
 
-        {/* Lista wybranych playlist (opcjonalnie) */}
         {selectedPlaylists.length > 0 && (
           <div className='mt-8 text-center'>
             <h2 className='text-lg font-semibold mb-2'>Selected playlists:</h2>
@@ -278,12 +288,12 @@ export default function Page() {
         <button onClick={() => fetchTracks()}>load this shit</button>
       </main>
 
-      {/* Stopka na wzór ChatGPT */}
+
       <footer className='w-full py-4 flex items-center justify-center border-t border-neutral-800 bg-neutral-900'>
         <p className='text-xs text-neutral-500'>
           ChatGPT UI can make mistakes. Check important info.
         </p>
       </footer>
     </div>
-  );
+  ); */
 }

@@ -41,98 +41,54 @@ export default function Playground() {
 
   useEffect(() => {
     const fetchToken = async () => {
-      // 1. Check for a valid session
-      const { data: sessionData, error: sessionError } =
+      const { data: sessionData, error: sessionErr } =
         await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
-        router.replace('/login');
-        return;
+      if (sessionErr || !sessionData.session) {
+        return router.push('/login');
       }
 
-      // 2. Retrieve and parse the token from localStorage
-      const tokenString = localStorage.getItem(
-        'sb-saobywbkuqinwaenpzvl-auth-token'
-      );
-
+      const storageKey = 'sb-saobywbkuqinwaenpzvl-auth-token';
+      const tokenString = localStorage.getItem(storageKey);
       if (!tokenString) {
-        setError("Token didn't exist in localstorage");
-        setLoading(false);
-        return;
+        return router.push('/login');
       }
-      const parsedToken = JSON.parse(tokenString);
+      const parsedToken = JSON.parse(tokenString) as Record<string, any>;
 
-      // Ensure we have a user email or id
-      if (!parsedToken.user.email && !parsedToken.user.id) return;
+      console.log(parsedToken.user.email);
 
-      // 3. Query the users table for an existing user with the given email
-      let { data: user, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', parsedToken.user.email)
-        .maybeSingle();
-
-      if (error) throw new Error('Database error. Check db logs for details.');
-
-      // 4. If user doesn't exist, insert a new record
-      if (!user) {
-        const userData = {
-          email: parsedToken.user.email,
-          auth_id: parsedToken.user.id,
-          refresh_token: parsedToken.provider_refresh, // Spotify refresh token
-        };
-
-        const { data: newUser, error: newUserError } = await supabase
+      if (!parsedToken.provider_token) {
+        const email = parsedToken.user.email;
+        const { data: users, error } = await supabase
           .from('users')
-          .insert(userData)
-          .select()
-          .maybeSingle();
-
-        if (newUserError) throw new Error('Db error: ' + newUserError.message);
-        user = newUser;
-      }
-
-      // 5. If the user's record is missing a refresh token, update it
-      if (!user.refresh_token) {
-        const { data: updatedUser, error: updateError } = await supabase
-          .from('users')
-          .update({ refresh_token: parsedToken.provider_refresh })
-          .eq('email', parsedToken.user.email)
-          .maybeSingle();
-        if (updateError)
-          throw new Error(
-            'Error updating user refresh token: ' + updateError.message
-          );
-        user = updatedUser;
-      }
-
-      // 6. Function to refresh the Spotify token using your API endpoint
-      const refreshSpotifyToken = async () => {
-        try {
-          const res = await fetch('/api/spotify-refresh', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              refresh_token: parsedToken.provider_refresh,
-            }),
-          });
-          const refreshData = await res.json();
-          if (refreshData.access_token) {
-            // Optionally, update localStorage with the new token data here
-            return refreshData.access_token;
-          } else {
-            console.error('Error refreshing Spotify token:', refreshData);
-            return parsedToken.provider_token; // Fallback to the old token
-          }
-        } catch (err) {
-          console.error('Error calling Spotify refresh endpoint:', err);
-          return parsedToken.provider_token;
+          .select('*')
+          .eq('email', email);
+        if (error || !users || users.length === 0) {
+          console.error('Nie znaleziono użytkownika w bazie', error);
+          return router.push('/login');
         }
-      };
 
-      // 7. Refresh the Spotify access token and update state
-      const newSpotifyToken = await refreshSpotifyToken();
-      setToken(newSpotifyToken);
-      setLoading(false);
+        const user: userData = users[0];
+        const refreshToken = user.refresh_token;
+
+        const tokenRes = await fetch('/api/refresh-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (!tokenRes.ok) {
+          const errorData = await tokenRes.json();
+          throw new Error(`Bad request: ${errorData.error || 'Unknown error'}`);
+        }
+
+        const data = await tokenRes.json();
+
+        parsedToken.provider_token = data.access_token;
+        localStorage.setItem(storageKey, JSON.stringify(parsedToken));
+        setToken(data.access_token);
+      } else {
+        setToken(parsedToken.provider_token);
+      }
     };
 
     fetchToken();
