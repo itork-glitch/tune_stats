@@ -1,4 +1,15 @@
-interface SpotifyTrack {
+// types/spotify.ts
+
+export interface Artist {
+  id: string;
+  name: string;
+  genres: string[];
+  images: { url: string }[];
+  external_urls?: { spotify: string };
+  // add any other fields you need
+}
+
+export interface SpotifyTrack {
   id: string;
   name: string;
   album: {
@@ -11,7 +22,7 @@ interface SpotifyTrack {
   };
 }
 
-interface TracksArray {
+export interface TracksArray {
   id: string | null;
   name: string | null;
   album: {
@@ -23,7 +34,7 @@ interface TracksArray {
   image: string;
 }
 
-interface PlaylistTrackItem {
+export interface PlaylistTrackItem {
   added_at: string;
   added_by: {
     external_urls: {
@@ -38,4 +49,5 @@ interface PlaylistTrackItem {
   track: SpotifyTrack | null;
 }
 
-export type { SpotifyTrack, TracksArray, PlaylistTrackItem };
+// For our `useTopItems` hook, we’ll alias Spotify’s `Track` to match:
+export type Track = SpotifyTrack;
