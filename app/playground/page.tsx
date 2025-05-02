@@ -47,48 +47,79 @@ export default function Playground() {
         return router.push('/login');
       }
 
-      const storageKey = 'sb-saobywbkuqinwaenpzvl-auth-token';
+      const storageKey = 'spotify_auth_token';
       const tokenString = localStorage.getItem(storageKey);
       if (!tokenString) {
-        return router.push('/login');
+        return console.log(tokenString);
       }
       const parsedToken = JSON.parse(tokenString) as Record<string, any>;
 
-      console.log(parsedToken.user.email);
+      const rawAuthToken = localStorage.getItem(
+        'sb-saobywbkuqinwaenpzvl-auth-token'
+      );
+      if (!rawAuthToken) return router.push('/login');
+      const authToken = JSON.parse(rawAuthToken);
 
-      if (!parsedToken.provider_token) {
-        const email = parsedToken.user.email;
-        const { data: users, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', email);
-        if (error || !users || users.length === 0) {
-          console.error('Nie znaleziono użytkownika w bazie', error);
+      const email = authToken.user.email;
+      const auth_id = authToken.user.id;
+
+      if (parsedToken.provider_token) {
+        const { error: dbError } = await supabase.from('users').upsert(
+          {
+            email,
+            auth_id,
+            refresh_token: authToken.provider_refresh_token,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: 'email', // primary/unique key
+          }
+        );
+
+        if (dbError) {
+          console.error('Supabase upser error', dbError);
           return router.push('/login');
         }
-
-        const user: userData = users[0];
-        const refreshToken = user.refresh_token;
-
-        const tokenRes = await fetch('/api/refresh-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        });
-
-        if (!tokenRes.ok) {
-          const errorData = await tokenRes.json();
-          throw new Error(`Bad request: ${errorData.error || 'Unknown error'}`);
-        }
-
-        const data = await tokenRes.json();
-
-        parsedToken.provider_token = data.access_token;
-        localStorage.setItem(storageKey, JSON.stringify(parsedToken));
-        setToken(data.access_token);
-      } else {
         setToken(parsedToken.provider_token);
+        return;
       }
+
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email);
+      if (error || !users || users.length === 0) {
+        console.error('Nie znaleziono użytkownika w bazie', error);
+        return router.push('/login');
+      }
+
+      const user: userData = users[0];
+      const refreshToken = user.refresh_token;
+
+      const tokenRes = await fetch('/api/refresh-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken, email, authID: auth_id }),
+      });
+
+      if (!tokenRes.ok) {
+        const errorData = await tokenRes.json();
+        console.error('Refresh endpoint error:', errorData);
+        return router.push('/login');
+      }
+
+      const { access_token, refresh_token, expires_in } = await tokenRes.json();
+
+      const newTokenObject = {
+        ...parsedToken,
+        access_token,
+        refresh_token,
+        expires_in,
+        expires_at: Math.floor(Date.now() / 1000) + expires_in,
+      };
+
+      localStorage.setItem(storageKey, JSON.stringify(newTokenObject));
+      setToken(access_token);
     };
 
     fetchToken();
